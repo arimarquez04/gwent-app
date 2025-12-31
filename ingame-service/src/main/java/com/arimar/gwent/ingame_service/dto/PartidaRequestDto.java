@@ -3,6 +3,7 @@ package com.arimar.gwent.ingame_service.dto;
 import com.arimar.gwent.ingame_service.model.EstadoPartida;
 import com.arimar.gwent.ingame_service.model.Partida;
 
+@Deprecated
 public class PartidaRequestDto {
     private EstadoPartida estadoPartida;
     private int ronda;

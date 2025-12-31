@@ -6,6 +6,7 @@ import com.arimar.gwent.ingame_service.model.PartidaRonda;
 import org.springframework.stereotype.Service;
 
 @Service
+@Deprecated
 public interface PartidaRondaService {
     PartidaRonda crearPartidaRonda(Partida partida, int numeroRonda, PartidaJugador partidaJugadorUno, PartidaJugador partidaJugadorDos);
 

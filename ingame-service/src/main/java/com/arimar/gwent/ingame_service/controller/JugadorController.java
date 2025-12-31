@@ -1,8 +1,8 @@
 package com.arimar.gwent.ingame_service.controller;
 
 import com.arimar.gwent.ingame_service.dto.JugadorRequestDto;
-import com.arimar.gwent.ingame_service.exceptions.DatoDeJugadorInvalidoException;
-import com.arimar.gwent.ingame_service.exceptions.NoSePuedeBorrarJugadorConCartasException;
+import com.arimar.gwent.ingame_service.exception.BadRequestException;
+import com.arimar.gwent.ingame_service.exception.bussines.DatoDeJugadorInvalidoException;
 import com.arimar.gwent.ingame_service.model.Jugador;
 
 import com.arimar.gwent.ingame_service.service.JugadorService;
@@ -15,7 +15,8 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/jugador")
+@RequestMapping("v1/jugador")
+@Deprecated
 public class JugadorController {
 
     private JugadorService jugadorService;
@@ -50,7 +51,7 @@ public class JugadorController {
             Jugador jugadorEliminar = jugadorOptional.get();
             jugadorService.eliminarJugador(jugadorEliminar);
             return jugadorEliminar;
-        } catch (NoSePuedeBorrarJugadorConCartasException e) {
+        } catch (BadRequestException.NoSePuedeBorrarJugadorConCartasException e) {
             System.err.println(e.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }

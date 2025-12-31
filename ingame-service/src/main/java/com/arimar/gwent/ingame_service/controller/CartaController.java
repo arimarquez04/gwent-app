@@ -1,6 +1,6 @@
 package com.arimar.gwent.ingame_service.controller;
 
-import com.arimar.gwent.ingame_service.exceptions.JugadorNoExisteException;
+import com.arimar.gwent.ingame_service.exception.BadRequestException;
 import com.arimar.gwent.ingame_service.dto.CartaRequestDto;
 import com.arimar.gwent.ingame_service.model.Carta;
 import com.arimar.gwent.ingame_service.model.Jugador;
@@ -15,7 +15,8 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/carta")
+@RequestMapping("v1/carta")
+@Deprecated
 public class CartaController {
     CartaService cartaService;
     JugadorService jugadorService;
@@ -31,7 +32,7 @@ public class CartaController {
         try {
             Jugador jugador = traerJugadorPorId(jugadorId);
             return cartaService.traerTodasLasCartasDeUnJugador(jugador);
-        }catch (JugadorNoExisteException e){
+        }catch (BadRequestException.JugadorNoExisteException e){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
 
@@ -62,7 +63,7 @@ public class CartaController {
         try {
             Jugador jugador = traerJugadorPorId(cartaRequestDto.getJugadorId());
             return cartaService.guardarCarta(cartaRequestDto, jugador);
-        } catch (JugadorNoExisteException e) {
+        } catch (BadRequestException.JugadorNoExisteException e) {
             System.err.println(e.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage());
         }
@@ -79,17 +80,17 @@ public class CartaController {
         try {
             Jugador jugador = traerJugadorPorId(cartaRequestDto.getJugadorId());
             cartaService.guardarCarta(cartaRequestDto, jugador);
-        } catch (JugadorNoExisteException e) {
+        } catch (BadRequestException.JugadorNoExisteException e) {
 
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage());
         }
         return ResponseEntity.ok(cartaOptional.get());
     }
 
-    private Jugador traerJugadorPorId(Integer jugadorId) throws JugadorNoExisteException {
+    private Jugador traerJugadorPorId(Integer jugadorId) throws BadRequestException.JugadorNoExisteException {
         Optional<Jugador> jugadorOptional = jugadorService.traerJugadorPorId(jugadorId);
         if (jugadorOptional.isEmpty()) {
-            throw new JugadorNoExisteException(jugadorId);
+            throw new BadRequestException.JugadorNoExisteException(jugadorId);
         }
         return jugadorOptional.get();
     }

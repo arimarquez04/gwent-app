@@ -3,6 +3,7 @@ package com.arimar.gwent.ingame_service.dto;
 import com.arimar.gwent.ingame_service.model.Carta;
 import com.arimar.gwent.ingame_service.model.PosicionCarta;
 
+@Deprecated
 public class CartaRequestDto {
 
     private String nombre;

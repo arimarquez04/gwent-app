@@ -1,12 +1,14 @@
 package com.arimar.gwent.ingame_service.service;
 
-import com.arimar.gwent.ingame_service.exceptions.*;
+import com.arimar.gwent.ingame_service.exception.*;
+import com.arimar.gwent.ingame_service.exception.bussines.*;
 import com.arimar.gwent.ingame_service.model.*;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 @Service
+@Deprecated
 public interface PartidaService {
     public List<Partida> traerTodasLasPartida();
 
@@ -17,38 +19,38 @@ public interface PartidaService {
 
 
     List<CartaPartidaJugador> obtenerCartasPartidaJugadorDeUnJugadorEnPartida(Partida partida, Jugador jugador)
-            throws JugadorNoPerteneceAPartidaException;
+            throws BadRequestException.JugadorNoPerteneceAPartidaException;
 
-    List<Carta> obtenerCartasEnMazoDeUnJugadorEnPartida(Partida partida, Jugador jugador) throws JugadorNoPerteneceAPartidaException;
+    List<Carta> obtenerCartasEnMazoDeUnJugadorEnPartida(Partida partida, Jugador jugador) throws BadRequestException.JugadorNoPerteneceAPartidaException;
 
     List<Carta> obtenerCartasEnBarajaDeUnJugadorEnPartida(Partida partida, Jugador jugador)
-            throws JugadorNoPerteneceAPartidaException;
+            throws BadRequestException.JugadorNoPerteneceAPartidaException;
 
     List<Carta> obtenerCartasEnCementerioDeUnJugadorEnPartida(Partida partida, Jugador jugador)
-            throws JugadorNoPerteneceAPartidaException;
+            throws BadRequestException.JugadorNoPerteneceAPartidaException;
 
     public Partida crearPartida(Jugador jugadorUno, Jugador jugadorDos);
 
     List<Carta> tirarCarta(Partida partida, Carta carta, Jugador jugador)
-            throws CartaNoPerteneceAJugadorException, CartaNoSeEncuentraEnElMazoException, JugadorNoLeTocaJugarException,
-            JugadorNoJuegaPorquePasoException, JugadorNoPerteneceAPartidaException, PartidaNoEstaEnCursoException, CartaNoSeEncuentraEnBarajaException, NoSePuedeEnviarCartasAlCementerioPorqueUnJugadorNoPasoException, NoSePuedeEnviarCartasAlCementerioPorqueLosJugadoresNoPasaronException, PartidaRondaNoPerteneceAPartida, PartidaRondaNoCoincideConRondaDePartidaException;
+            throws CartaNoPerteneceAJugadorException, CartaNoSeEncuentraEnElMazoException, BadRequestException.JugadorNoLeTocaJugarException,
+            BadRequestException.JugadorNoJuegaPorquePasoException, BadRequestException.JugadorNoPerteneceAPartidaException, BadRequestException.PartidaNoEstaEnCursoException, CartaNoSeEncuentraEnBarajaException, BadRequestException.NoSePuedeEnviarCartasAlCementerioPorqueUnJugadorNoPasoException, BadRequestException.NoSePuedeEnviarCartasAlCementerioPorqueLosJugadoresNoPasaronException, BadRequestException.PartidaRondaNoPerteneceAPartida, BadRequestException.PartidaRondaNoCoincideConRondaDePartidaException;
 
     Partida verificarEmpezarPartida(Partida partida,Jugador jugador);
 
     public List<Carta> prepararMazo(Partida partida, Jugador jugador, List<Carta> cartas)
-            throws CartasInsufucientesException, CartaNoPerteneceAJugadorException, PartidaNoEstaEnPreparandoMazoException, JugadorYaPreparoMazoException, JugadorNoPerteneceAPartidaException;
+            throws CartasInsufucientesException, CartaNoPerteneceAJugadorException, BadRequestException.PartidaNoEstaEnPreparandoMazoException, BadRequestException.JugadorYaPreparoMazoException, BadRequestException.JugadorNoPerteneceAPartidaException;
 
-    List<Carta> noDescartarCartas(Partida partida, Jugador jugador) throws JugadorNoPerteneceAPartidaException, JugadorNoLeTocaJugarException;
+    List<Carta> noDescartarCartas(Partida partida, Jugador jugador) throws BadRequestException.JugadorNoPerteneceAPartidaException, BadRequestException.JugadorNoLeTocaJugarException;
 
     List<Carta> descarteDosCartas(Partida partida, Jugador jugador, Carta cartaUno, Carta cartaDos)
-            throws CartaADescartarNoSeEncuentraEnBarajaException, JugadorNoPerteneceAPartidaException, CartaNoPerteneceAJugadorException;
+            throws CartaADescartarNoSeEncuentraEnBarajaException, BadRequestException.JugadorNoPerteneceAPartidaException, CartaNoPerteneceAJugadorException;
 
     List<Carta> descarteUnaCarta(Partida partida, Jugador jugador, Carta carta)
-            throws CartaADescartarNoSeEncuentraEnBarajaException, JugadorNoPerteneceAPartidaException,
+            throws CartaADescartarNoSeEncuentraEnBarajaException, BadRequestException.JugadorNoPerteneceAPartidaException,
             CartaNoPerteneceAJugadorException;
 
 
-    Partida jugadorPasaSuTurno(Partida partida, Jugador jugador) throws JugadorNoPerteneceAPartidaException, JugadorNoLeTocaJugarException, PartidaNoEstaEnCursoException, PartidaRondaNoPerteneceAPartida, PartidaRondaNoCoincideConRondaDePartidaException, NoSePuedeEnviarCartasAlCementerioPorqueUnJugadorNoPasoException, NoSePuedeEnviarCartasAlCementerioPorqueLosJugadoresNoPasaronException;
+    Partida jugadorPasaSuTurno(Partida partida, Jugador jugador) throws BadRequestException.JugadorNoPerteneceAPartidaException, BadRequestException.JugadorNoLeTocaJugarException, BadRequestException.PartidaNoEstaEnCursoException, BadRequestException.PartidaRondaNoPerteneceAPartida, BadRequestException.PartidaRondaNoCoincideConRondaDePartidaException, BadRequestException.NoSePuedeEnviarCartasAlCementerioPorqueUnJugadorNoPasoException, BadRequestException.NoSePuedeEnviarCartasAlCementerioPorqueLosJugadoresNoPasaronException;
 
     boolean jugadorPerteneceAPartida(Jugador jugador, Partida partida);
 
@@ -56,10 +58,10 @@ public interface PartidaService {
 
     PartidaJugador obtenerPartidaJugadorDelOtroJugadorEnPartida(Partida partida, Jugador jugador);
 
-    List<Carta> descarte(Partida partida, Jugador jugador, Optional<Carta> cartaUnoOptional, Optional<Carta> cartaDosOptional, Boolean noTirar) throws JugadorNoPerteneceAPartidaException, CartaADescartarNoSeEncuentraEnBarajaException, CartaNoPerteneceAJugadorException, PartidaNoEstaEnDescarteException, JugadorNoLeTocaJugarException, JugadorYaDescartoException;
+    List<Carta> descarte(Partida partida, Jugador jugador, Optional<Carta> cartaUnoOptional, Optional<Carta> cartaDosOptional, Boolean noTirar) throws BadRequestException.JugadorNoPerteneceAPartidaException, CartaADescartarNoSeEncuentraEnBarajaException, CartaNoPerteneceAJugadorException, BadRequestException.PartidaNoEstaEnDescarteException, BadRequestException.JugadorNoLeTocaJugarException, BadRequestException.JugadorYaDescartoException;
 
-    Partida enviarCartasAlCementerioYContarPuntajeDeRonda(Partida partida, Jugador jugador) throws PartidaNoEstaEnCursoException, NoSePuedeEnviarCartasAlCementerioPorqueLosJugadoresNoPasaronException, NoSePuedeEnviarCartasAlCementerioPorqueUnJugadorNoPasoException;
+    Partida enviarCartasAlCementerioYContarPuntajeDeRonda(Partida partida, Jugador jugador) throws BadRequestException.PartidaNoEstaEnCursoException, BadRequestException.NoSePuedeEnviarCartasAlCementerioPorqueLosJugadoresNoPasaronException, BadRequestException.NoSePuedeEnviarCartasAlCementerioPorqueUnJugadorNoPasoException;
 
     Partida verficarGanador(Partida partida)
-            throws PartidaRondaNoPerteneceAPartida, PartidaRondaNoCoincideConRondaDePartidaException;
+            throws BadRequestException.PartidaRondaNoPerteneceAPartida, BadRequestException.PartidaRondaNoCoincideConRondaDePartidaException;
 }

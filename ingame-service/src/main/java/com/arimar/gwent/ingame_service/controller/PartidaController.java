@@ -11,7 +11,8 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/partida")
+@RequestMapping("v1/partida")
+@Deprecated
 public class PartidaController {
     private final PartidaService partidaService;
     private final JugadorService jugadorService;
