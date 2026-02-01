@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.arimar.gwent</groupId>
 	<artifactId>ingame-service</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.2-SNAPSHOT</version>
 	<name>ingame-service</name>
 	<description>Demo project for Spring Boot</description>
 	<url/>
@@ -31,6 +31,25 @@
 		<springdoc.version>2.8.0</springdoc.version>
 	</properties>
 	<dependencies>
+		<dependency>
+			<groupId>com.arimar.gwent</groupId>
+			<artifactId>gwent-common</artifactId>
+			<version>0.2.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.arimar.gwent</groupId>
+			<artifactId>gwent-contracts</artifactId>
+			<version>0.2.0</version>
+		</dependency>
+
+		<!-- Solo si compartís entidades -->
+		<dependency>
+			<groupId>com.arimar.gwent</groupId>
+			<artifactId>gwent-domain</artifactId>
+			<version>0.2.0</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>

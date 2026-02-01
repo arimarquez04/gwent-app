@@ -1,7 +1,7 @@
 package com.arimar.gwent.ingame_service.mapper;
 
-import com.arimar.gwent.ingame_service.dto.requets.UserRequestDTO;
-import com.arimar.gwent.ingame_service.dto.response.UserResponseDTO;
+import com.arimar.gwent.common.user.dto.request.UserRequestDTO;
+import com.arimar.gwent.common.user.dto.response.UserResponseDTO;
 import com.arimar.gwent.ingame_service.model.User;
 import org.springframework.stereotype.Component;
 

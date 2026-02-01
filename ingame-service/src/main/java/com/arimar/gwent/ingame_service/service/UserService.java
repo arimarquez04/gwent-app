@@ -1,7 +1,7 @@
 package com.arimar.gwent.ingame_service.service;
 
-import com.arimar.gwent.ingame_service.dto.requets.UserRequestDTO;
-import com.arimar.gwent.ingame_service.dto.response.UserResponseDTO;
+import com.arimar.gwent.common.user.dto.request.UserRequestDTO;
+import com.arimar.gwent.common.user.dto.response.UserResponseDTO;
 import com.arimar.gwent.ingame_service.mapper.UserMapper;
 import com.arimar.gwent.ingame_service.model.User;
 import com.arimar.gwent.ingame_service.repository.UserRepository;
@@ -24,10 +24,11 @@ public class UserService {
         User user = userMapper.toEntityFromRequest(requestDTO);
 
         try {
-            user = userRepository.save(user);
-            return userMapper.toResponseFromEntity(user);
+            throw new Exception("prueba de error");
+            //user = userRepository.save(user);
+            //return userMapper.toResponseFromEntity(user);
         } catch (Exception e) {
-            throw new RuntimeException("Error saving user: " + e.getMessage());
+            throw new RuntimeException("Error while saving user: " + e.getMessage());
         }
     }
 }

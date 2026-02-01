@@ -1,10 +1,10 @@
 package com.arimar.gwent.ingame_service.controller;
 
 
-import com.arimar.gwent.ingame_service.dto.requets.UserRequestDTO;
-import com.arimar.gwent.ingame_service.dto.response.GenericResponseDTO;
-import com.arimar.gwent.ingame_service.dto.response.UserResponseDTO;
-import com.arimar.gwent.ingame_service.exception.BadRequestException;
+import com.arimar.gwent.common.user.dto.request.UserRequestDTO;
+import com.arimar.gwent.common.user.dto.response.UserResponseDTO;
+import com.arimar.gwent.common.utils.exception.BadRequestException;
+import com.arimar.gwent.common.utils.response.GenericResponseDTO;
 import com.arimar.gwent.ingame_service.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,12 +21,14 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("api/")
-public class UserController {
+public class UserControllerImpl implements UserControllerApi {
 
     private UserService userService;
+
     @Value("${spring.application.name}")
     private String SERVICE_NAME;
-    public UserController(UserService userService) {
+
+    public UserControllerImpl(UserService userService) {
         this.userService = userService;
     }
 
@@ -51,7 +53,8 @@ public class UserController {
         );
         return ResponseEntity.ok(response);
     }
-    @PostMapping("v2/user")
+
+    @Override
     public ResponseEntity<GenericResponseDTO<UserResponseDTO>> signUpV2(@Valid @RequestBody UserRequestDTO requestDTO, BindingResult bindingResult) throws BadRequestException {
 
         if (bindingResult.hasErrors()) {

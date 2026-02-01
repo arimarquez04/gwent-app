@@ -122,7 +122,7 @@ public class BadRequestException extends Exception {
 
     public static class PartidaRondaNoCoincideConRondaDePartidaException extends Exception{
         public PartidaRondaNoCoincideConRondaDePartidaException(){
-           super("La ronda no coincide con el numero de ronda de la partida");
+            super("La ronda no coincide con el numero de ronda de la partida");
         }
 
     }
