@@ -1,0 +1,32 @@
+#spring.application.name=auth-service
+server:
+  port: 8081
+
+spring:
+  application:
+    name: auth-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/gwent?serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true&useSSL=false
+    username: root
+    password: admin
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+springdoc:
+  packages-to-scan: com.arimar.gwent.authservice
+
+gwent:
+  jwt:
+    issuer: "gwent-auth"
+    audience: "gwent-bff"
+    ttl-seconds: 900
+    private-key-pem: "classpath:keys/private.pem"
+    public-key-pem: "classpath:keys/public.pem"
