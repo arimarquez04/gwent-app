@@ -1,22 +1,32 @@
 package com.arimar.gwent.authservice.exception;
 
+import com.arimar.gwent.common.response.GenericResponseDTO;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-
 @RestControllerAdvice
 public class ApiExceptionHandler {
+    @Value("${spring.application.name}")
+    private String serviceOrigin;
 
     @ExceptionHandler(UnauthorizedException.class)
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public Map<String, Object> unauthorized(UnauthorizedException ex) {
-        return Map.of("error", "unauthorized", "message", ex.getMessage());
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public GenericResponseDTO<String> unauthorized(UnauthorizedException ex) {
+        return GenericResponseDTO.<String>builder()
+                .serviceOrigin(serviceOrigin)
+                .status(HttpStatus.CONFLICT.value())
+                .data("Credenciales invalidas")
+                .build();
     }
 
     @ExceptionHandler(ConflictException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public Map<String, Object> conflict(ConflictException ex) {
-        return Map.of("error", "conflict", "message", ex.getMessage());
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public GenericResponseDTO<String> unauthorized(ConflictException ex) {
+        return GenericResponseDTO.<String>builder()
+                .serviceOrigin(serviceOrigin)
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .data("Credenciales invalidas")
+                .build();
     }
 }

@@ -1,4 +1,4 @@
-package com.arimar.gwent.authservice.config;
+package com.arimar.gwent.authservice.config.security;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

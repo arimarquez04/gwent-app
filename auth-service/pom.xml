@@ -12,7 +12,7 @@
 	<artifactId>auth-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>auth-service</name>
-	<description>Demo project for Spring Boot</description>
+	<description>Service to auth operations in Gwent</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -35,17 +35,22 @@
 		<dependency>
 			<groupId>com.arimar.gwent</groupId>
 			<artifactId>gwent-security</artifactId>
-			<version>0.4.0</version>
+			<version>0.6.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.arimar.gwent</groupId>
 			<artifactId>gwent-contracts</artifactId>
-			<version>0.4.0</version>
+			<version>0.6.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.arimar.gwent</groupId>
 			<artifactId>gwent-domain</artifactId>
-			<version>0.5.0</version>
+			<version>0.6.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.arimar.gwent</groupId>
+			<artifactId>gwent-common</artifactId>
+			<version>0.6.0</version>
 		</dependency>
 
 		<!-- Web / REST -->

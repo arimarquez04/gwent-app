@@ -1,4 +1,4 @@
-package com.arimar.gwent.authservice.config;
+package com.arimar.gwent.authservice.config.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

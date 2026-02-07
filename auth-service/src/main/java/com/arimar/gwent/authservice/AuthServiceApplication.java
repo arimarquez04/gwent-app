@@ -1,6 +1,6 @@
 package com.arimar.gwent.authservice;
 
-import com.arimar.gwent.authservice.config.JWTConfigurationProperties;
+import com.arimar.gwent.authservice.config.security.JWTConfigurationProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;

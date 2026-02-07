@@ -25,9 +25,15 @@ public class AuthService {
     }
 
     public TokenResponse register(RegisterRequest req) {
-        if (repo.existsByUsername(req.getUsername())) throw new ConflictException("username already exists");
-        if (req.getEmail() != null && repo.existsByEmail(req.getEmail())) throw new ConflictException("email already exists");
-        if (repo.existsByGameIdAndTag(req.getGameId(), req.getTag())) throw new ConflictException("gameId#tag already exists");
+        if (repo.existsByUsername(req.getUsername())){
+            throw new ConflictException("username already exists");
+        }
+        if (req.getEmail() != null && repo.existsByEmail(req.getEmail())){
+            throw new ConflictException("email already exists");
+        }
+        if (repo.existsByGameIdAndTag(req.getGameId(), req.getTag())) {
+            throw new ConflictException("gameId#tag already exists");
+        }
 
         UserEntity newUser = UserEntity.builder()
                 .username(req.getUsername())

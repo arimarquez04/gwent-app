@@ -30,3 +30,8 @@ gwent:
     ttl-seconds: 900
     private-key-pem: "classpath:keys/private.pem"
     public-key-pem: "classpath:keys/public.pem"
+
+paths:
+  auth:
+    v1: "/v1/auth"
+

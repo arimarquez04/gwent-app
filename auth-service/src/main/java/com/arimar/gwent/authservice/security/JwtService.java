@@ -1,6 +1,6 @@
 package com.arimar.gwent.authservice.security;
 
-import com.arimar.gwent.authservice.config.JWTConfigurationProperties;
+import com.arimar.gwent.authservice.config.security.JWTConfigurationProperties;
 import com.arimar.gwent.contracts.auth.claims.JwtClaimNames;
 import com.arimar.gwent.domain.user.UserEntity;
 import com.nimbusds.jose.jwk.JWKSet;
