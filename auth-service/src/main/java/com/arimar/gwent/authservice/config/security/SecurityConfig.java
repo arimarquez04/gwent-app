@@ -18,15 +18,14 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(requestPath + "/**")
-                        .permitAll()
+                        .requestMatchers(requestPath + "/**").permitAll()
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/swagger-ui/index.html",
                                 "/v3/api-docs/**",
-                                "/error")
-                        .permitAll()
+                                "/error").permitAll()
+                        .requestMatchers("/.well-known/jwks.json").permitAll()
                         .anyRequest().authenticated()
                 )
                 .httpBasic(httpBasic -> httpBasic.disable())

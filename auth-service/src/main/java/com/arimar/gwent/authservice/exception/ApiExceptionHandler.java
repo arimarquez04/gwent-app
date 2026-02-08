@@ -26,7 +26,7 @@ public class ApiExceptionHandler {
         return GenericResponseDTO.<String>builder()
                 .serviceOrigin(serviceOrigin)
                 .status(HttpStatus.UNAUTHORIZED.value())
-                .data("Credenciales invalidas")
+                .data(ex.getMessage())
                 .build();
     }
 }

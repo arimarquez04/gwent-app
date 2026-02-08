@@ -33,5 +33,4 @@ gwent:
 
 paths:
   auth:
-    v1: "/v1/auth"
-
+    v1: "/auth/v1"

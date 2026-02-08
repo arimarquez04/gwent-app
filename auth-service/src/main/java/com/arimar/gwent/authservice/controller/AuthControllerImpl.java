@@ -52,4 +52,6 @@ public class AuthControllerImpl implements AuthController {
                 .status(HttpStatus.CREATED.value())
                 .build();
     }
+
+
 }
