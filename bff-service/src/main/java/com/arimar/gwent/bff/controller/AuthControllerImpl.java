@@ -36,7 +36,7 @@ public class AuthControllerImpl implements AuthController {
             throw new BadRequestException(bindingResult);
         }
         return GenericResponseDTO.<TokenResponse>builder()
-                .data(authServiceClient.register(req).getData())
+                .data(authServiceClient.registerWithInvoker(req).getData())
                 .serviceOrigin(serviceOrigin)
                 .status(HttpStatus.CREATED.value())
                 .build();
@@ -49,27 +49,10 @@ public class AuthControllerImpl implements AuthController {
             throw new BadRequestException(bindingResult);
         }
         return GenericResponseDTO.<TokenResponse>builder()
-                .data(authServiceClient.login(req).getData())
+                .data(authServiceClient.loginWithInvoker(req).getData())
                 .serviceOrigin(serviceOrigin)
                 .status(HttpStatus.CREATED.value())
                 .build();
     }
 }
-
-    /*
-    @ResponseStatus(HttpStatus.ACCEPTED)
-    @Override
-    public GenericResponseDTO<TokenResponse> login(@Valid @RequestBody LoginRequest req,
-                                                   BindingResult bindingResult) throws BadRequestException {
-        if (bindingResult.hasErrors()) {
-            throw new BadRequestException(bindingResult);
-        }
-        return GenericResponseDTO.<TokenResponse>builder()
-                .data(auth.login(req))
-                .serviceOrigin(serviceOrigin)
-                .status(HttpStatus.CREATED.value())
-                .build();
-    }
-
-      */
 

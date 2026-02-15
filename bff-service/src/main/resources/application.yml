@@ -23,7 +23,7 @@ spring:
 server:
   port: 8080
 
-# Configuración de servicios internos
+# Configuraciï¿½n de servicios internos
 gwent:
   services:
     bff:
@@ -38,7 +38,7 @@ gwent:
     auth:
       name: "auth-service"
       v1-version: "/v1"
-      base-url: "http://localhost:8081/auth"
+      base-url: "http://localhost:8085/auth"
       register: "/register"
       login: "/login"
 
@@ -46,3 +46,13 @@ gwent:
 logging:
   level:
     org.springframework.security: DEBUG
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never

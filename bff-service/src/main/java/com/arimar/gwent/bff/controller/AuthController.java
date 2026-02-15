@@ -6,8 +6,6 @@ import com.arimar.gwent.contracts.auth.request.LoginRequest;
 import com.arimar.gwent.contracts.auth.request.RegisterRequest;
 import com.arimar.gwent.contracts.auth.response.TokenResponse;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
