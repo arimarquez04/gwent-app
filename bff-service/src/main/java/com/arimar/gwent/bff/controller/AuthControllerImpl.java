@@ -1,6 +1,7 @@
 package com.arimar.gwent.bff.controller;
 
 import com.arimar.gwent.bff.client.AuthServiceClient;
+import com.arimar.gwent.bff.client.JugadorServiceClient;
 import com.arimar.gwent.bff.service.AuthService;
 import com.arimar.gwent.common.response.GenericResponseDTO;
 import com.arimar.gwent.common.utils.exception.BadRequestException;
@@ -19,12 +20,15 @@ public class AuthControllerImpl implements AuthController {
 
     private final AuthService auth;
     private final AuthServiceClient authServiceClient;
+    private final JugadorServiceClient jugadorServiceClient;
     @Value("${spring.application.name}")
     private String serviceOrigin;
-    public AuthControllerImpl(AuthService auth, AuthServiceClient authServiceClient) {
+
+    public AuthControllerImpl(AuthService auth, AuthServiceClient authServiceClient,
+                               JugadorServiceClient jugadorServiceClient) {
         this.auth = auth;
         this.authServiceClient = authServiceClient;
-
+        this.jugadorServiceClient = jugadorServiceClient;
     }
 
     @Override
@@ -35,8 +39,10 @@ public class AuthControllerImpl implements AuthController {
         if (bindingResult.hasErrors()) {
             throw new BadRequestException(bindingResult);
         }
+        TokenResponse tokenData = authServiceClient.registerWithInvoker(req).getData();
+        jugadorServiceClient.createProfile(req.getUsername(), tokenData.getAccessToken());
         return GenericResponseDTO.<TokenResponse>builder()
-                .data(authServiceClient.registerWithInvoker(req).getData())
+                .data(tokenData)
                 .serviceOrigin(serviceOrigin)
                 .status(HttpStatus.CREATED.value())
                 .build();
