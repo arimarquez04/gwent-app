@@ -1,4 +1,4 @@
-package com.arimar.gwent.jugador_service;
+package com.arimar.gwent.jugadorservice;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

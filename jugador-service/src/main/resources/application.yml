@@ -1,0 +1,37 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: jugador-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/gwent?serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true&useSSL=false
+    username: root
+    password: admin
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.MySQLDialect
+
+gwent:
+  security:
+    jwt:
+      jwks-uri: http://localhost:8085/.well-known/jwks.json
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+
+logging:
+  level:
+    org.springframework.security: DEBUG
