@@ -1,9 +1,11 @@
 package com.arimar.gwent.authservice.exception;
 
-import com.arimar.gwent.common.response.GenericResponseDTO;
+import com.arimar.gwent.common.exception.ErrorDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
@@ -12,21 +14,23 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(UnauthorizedException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public GenericResponseDTO<String> unauthorized(UnauthorizedException ex) {
-        return GenericResponseDTO.<String>builder()
+    public ErrorDTO conflict(UnauthorizedException ex) {
+        return ErrorDTO.builder()
                 .serviceOrigin(serviceOrigin)
-                .status(HttpStatus.CONFLICT.value())
-                .data("Credenciales invalidas")
+                .status(HttpStatus.CONFLICT)
+                .message("Credenciales invalidas")
+                .body(ex.getMessage())
                 .build();
     }
 
     @ExceptionHandler(ConflictException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public GenericResponseDTO<String> unauthorized(ConflictException ex) {
-        return GenericResponseDTO.<String>builder()
+    public ErrorDTO unauthorized(ConflictException ex) {
+         return ErrorDTO.builder()
                 .serviceOrigin(serviceOrigin)
-                .status(HttpStatus.UNAUTHORIZED.value())
-                .data(ex.getMessage())
+                .status(HttpStatus.UNAUTHORIZED)
+                .message("Credenciales invalidas")
+                .body(ex.getMessage())
                 .build();
     }
 }

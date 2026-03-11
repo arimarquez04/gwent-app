@@ -25,6 +25,7 @@ public class SecurityConfig {
                                 "/swagger-ui/index.html",
                                 "/v3/api-docs/**",
                                 "/error").permitAll()
+                        .requestMatchers("/actuator/health/**").permitAll()
                         .requestMatchers("/.well-known/jwks.json").permitAll()
                         .anyRequest().authenticated()
                 )
