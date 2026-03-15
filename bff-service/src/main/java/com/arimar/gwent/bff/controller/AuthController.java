@@ -1,5 +1,6 @@
 package com.arimar.gwent.bff.controller;
 
+import com.arimar.gwent.bff.dto.auth.ChangePasswordRequest;
 import com.arimar.gwent.common.response.GenericResponseDTO;
 import com.arimar.gwent.common.utils.exception.BadRequestException;
 import com.arimar.gwent.contracts.auth.request.LoginRequest;
@@ -10,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -39,6 +41,16 @@ public interface AuthController {
     @PostMapping("/login")
     GenericResponseDTO<TokenResponse> login(
             @Valid @RequestBody LoginRequest req,
+            BindingResult bindingResult
+    ) throws BadRequestException;
+
+    @Operation(summary = "Cambio de contraseña", description = "Requiere JWT. Verifica la contraseña actual y la reemplaza.")
+    @ApiResponse(responseCode = "200", description = "Contraseña cambiada exitosamente")
+    @ApiResponse(responseCode = "400", description = "Request inválido")
+    @ApiResponse(responseCode = "401", description = "Contraseña actual incorrecta")
+    @PatchMapping("/password")
+    GenericResponseDTO<String> changePassword(
+            @Valid @RequestBody ChangePasswordRequest req,
             BindingResult bindingResult
     ) throws BadRequestException;
 

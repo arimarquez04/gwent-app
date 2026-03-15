@@ -111,4 +111,18 @@ public class AuthServiceClient {
                 response.error());
     }
 
+    public GenericResponseDTO<String> changePassword(String username, String currentPassword, String newPassword) {
+        String url = cfg.getBaseUrl() + cfg.getV1Version() + cfg.getChangePasswordUrl();
+        Map<String, String> body = Map.of(
+                "username", username,
+                "currentPassword", currentPassword,
+                "newPassword", newPassword
+        );
+        ParameterizedTypeReference<GenericResponseDTO<String>> okType =
+                new ParameterizedTypeReference<>() {};
+        ServiceCallResponse<String> response = invoker.exchange(HttpMethod.PATCH, url, body, Map.of(), okType);
+        if (response.isOk()) return response.ok();
+        throw errorMapper.toException(cfg.getName(), url, response.httpStatus(), response.error());
+    }
+
 }

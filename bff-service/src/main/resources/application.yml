@@ -34,6 +34,7 @@ gwent:
       v1-version: "/v1"
       me-url: "/me"
       create-player-url: "/v1/players"
+      players-me-url: "/v1/players/me"
     ingame:
       base-url: "http://localhost:8083"
     auth:
@@ -42,6 +43,7 @@ gwent:
       base-url: "http://localhost:8085/auth"
       register: "/register"
       login: "/login"
+      change-password-url: "/users/me/password"
 
 
 logging:

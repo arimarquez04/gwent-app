@@ -15,5 +15,6 @@ public class JugadorServiceConfig {
     private String v1Version;
     private String meUrl;
     private String createPlayerUrl;
+    private String playersMeUrl;
 }
 

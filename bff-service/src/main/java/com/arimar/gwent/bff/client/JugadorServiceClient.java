@@ -1,6 +1,8 @@
 package com.arimar.gwent.bff.client;
 
 import com.arimar.gwent.bff.client.config.JugadorServiceConfig;
+import com.arimar.gwent.bff.dto.jugador.PlayerProfileDTO;
+import com.arimar.gwent.bff.dto.jugador.UpdateProfileRequest;
 import com.arimar.gwent.common.response.GenericResponseDTO;
 import com.arimar.gwent.communication.error.RemoteServiceErrorMapper;
 import com.arimar.gwent.communication.invoker.GenericRestInvoker;
@@ -41,6 +43,21 @@ public class JugadorServiceClient {
 
 
 
+    public void createProfileLazy(String apodo) {
+        String url = cfg.getBaseUrl() + cfg.getCreatePlayerUrl();
+        ServiceCallResponse<Object> response = invoker.exchange(
+                HttpMethod.POST, url,
+                Map.of("apodo", apodo),
+                Map.of(),
+                new ParameterizedTypeReference<GenericResponseDTO<Object>>() {}
+        );
+        if (!response.isOk() && response.httpStatus().value() != 409) {
+            log.error("Lazy profile creation failed for apodo={} status={} error={}",
+                    apodo, response.httpStatus(), response.error());
+            throw errorMapper.toException(cfg.getName(), url, response.httpStatus(), response.error());
+        }
+    }
+
     public void createProfile(String apodo, String bearerToken) {
         String url = cfg.getBaseUrl() + cfg.getCreatePlayerUrl();
         ParameterizedTypeReference<GenericResponseDTO<Object>> okType =
@@ -58,6 +75,26 @@ public class JugadorServiceClient {
                     apodo, response.httpStatus(), response.error());
             throw errorMapper.toException(cfg.getName(), url, response.httpStatus(), response.error());
         }
+    }
+
+    public GenericResponseDTO<PlayerProfileDTO> getProfile() {
+        String url = cfg.getBaseUrl() + cfg.getPlayersMeUrl();
+        ParameterizedTypeReference<GenericResponseDTO<PlayerProfileDTO>> okType =
+                new ParameterizedTypeReference<>() {};
+        ServiceCallResponse<PlayerProfileDTO> response =
+                invoker.exchange(HttpMethod.GET, url, null, Map.of(), okType);
+        if (response.isOk()) return response.ok();
+        throw errorMapper.toException(cfg.getName(), url, response.httpStatus(), response.error());
+    }
+
+    public GenericResponseDTO<PlayerProfileDTO> updateProfile(UpdateProfileRequest req) {
+        String url = cfg.getBaseUrl() + cfg.getPlayersMeUrl();
+        ParameterizedTypeReference<GenericResponseDTO<PlayerProfileDTO>> okType =
+                new ParameterizedTypeReference<>() {};
+        ServiceCallResponse<PlayerProfileDTO> response =
+                invoker.exchange(HttpMethod.PATCH, url, req, Map.of(), okType);
+        if (response.isOk()) return response.ok();
+        throw errorMapper.toException(cfg.getName(), url, response.httpStatus(), response.error());
     }
 
     public GenericResponseDTO<Actor> me() {

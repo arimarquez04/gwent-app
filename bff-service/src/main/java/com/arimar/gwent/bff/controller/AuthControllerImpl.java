@@ -2,6 +2,8 @@ package com.arimar.gwent.bff.controller;
 
 import com.arimar.gwent.bff.client.AuthServiceClient;
 import com.arimar.gwent.bff.client.JugadorServiceClient;
+import com.arimar.gwent.bff.dto.auth.ChangePasswordRequest;
+import com.arimar.gwent.bff.security.ActorResolver;
 import com.arimar.gwent.bff.service.AuthService;
 import com.arimar.gwent.common.response.GenericResponseDTO;
 import com.arimar.gwent.common.utils.exception.BadRequestException;
@@ -21,14 +23,16 @@ public class AuthControllerImpl implements AuthController {
     private final AuthService auth;
     private final AuthServiceClient authServiceClient;
     private final JugadorServiceClient jugadorServiceClient;
+    private final ActorResolver actorResolver;
     @Value("${spring.application.name}")
     private String serviceOrigin;
 
     public AuthControllerImpl(AuthService auth, AuthServiceClient authServiceClient,
-                               JugadorServiceClient jugadorServiceClient) {
+                               JugadorServiceClient jugadorServiceClient, ActorResolver actorResolver) {
         this.auth = auth;
         this.authServiceClient = authServiceClient;
         this.jugadorServiceClient = jugadorServiceClient;
+        this.actorResolver = actorResolver;
     }
 
     @Override
@@ -59,6 +63,16 @@ public class AuthControllerImpl implements AuthController {
                 .serviceOrigin(serviceOrigin)
                 .status(HttpStatus.CREATED.value())
                 .build();
+    }
+
+    @Override
+    public GenericResponseDTO<String> changePassword(@Valid @RequestBody ChangePasswordRequest req,
+                                                     BindingResult bindingResult) throws BadRequestException {
+        if (bindingResult.hasErrors()) {
+            throw new BadRequestException(bindingResult);
+        }
+        String username = actorResolver.currentActor().getUsername();
+        return authServiceClient.changePassword(username, req.getCurrentPassword(), req.getNewPassword());
     }
 }
 

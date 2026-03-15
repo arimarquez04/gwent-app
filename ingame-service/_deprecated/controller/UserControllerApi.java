@@ -3,7 +3,7 @@ package com.arimar.gwent.ingame_service.controller;
 import com.arimar.gwent.common.user.dto.request.UserRequestDTO;
 import com.arimar.gwent.common.user.dto.response.UserResponseDTO;
 import com.arimar.gwent.common.utils.exception.BadRequestException;
-import com.arimar.gwent.common.utils.response.GenericResponseDTO;
+import com.arimar.gwent.common.response.GenericResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;

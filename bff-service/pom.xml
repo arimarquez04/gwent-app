@@ -8,13 +8,13 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.5.4</version>
+		<version>3.5.10</version>
 		<relativePath/>
 	</parent>
 
 	<groupId>com.arimar.gwent</groupId>
 	<artifactId>bff</artifactId>
-	<version>0.0.1</version>
+	<version>0.0.1-SNAPSHOT</version>
 	<name>bff-service</name>
 	<packaging>jar</packaging>
 

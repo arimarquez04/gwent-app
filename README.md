@@ -2,7 +2,7 @@
 
 Backend para una aplicación de simulación del juego **Gwent (The Witcher 3)**, basado en **microservicios con Spring Boot** y un **BFF (Backend for Frontend)** como único punto de entrada.
 
-> **Estado del proyecto:** Diseño de APIs y arquitectura (planning phase)
+> **Estado del proyecto:** En desarrollo activo. auth-service, jugador-service y bff-service son funcionales. ingame-service y solicitud-service son esqueletos vacíos.
 
 ---
 
@@ -15,12 +15,14 @@ Backend para una aplicación de simulación del juego **Gwent (The Witcher 3)**,
 
 ### Servicios
 
-- **BFF Service** – Punto de entrada y orquestación
-- **jugador-service** – Gestión de jugadores y perfiles
-- **desafio-service** – Gestión del ciclo de vida de desafíos
-- **ingame-service** – Lógica del juego, mazos, cartas y partidas
-- **ranking-service** – Rankings y estadísticas (pendiente)
-- **auth-service** - Operaciones de autenticación
+| Servicio | Puerto | Estado |
+|---|---|---|
+| **bff-service** | 8080 | Funcional — punto de entrada público `/api/**` |
+| **jugador-service** | 8082 | Funcional — perfiles de jugador |
+| **ingame-service** | 8083 | Esqueleto vacío |
+| **auth-service** | 8085 | Funcional — autenticación JWT RS256 |
+| **solicitud-service** | — | Esqueleto vacío |
+| **ranking-service** | — | No existe aún |
 
 ---
 
@@ -50,16 +52,107 @@ flowchart LR
 
 ---
 
+## Autenticación y seguridad
+
+### Mecanismo JWT (RS256)
+
+- **auth-service** emite tokens firmados con `private.pem` (RS256, Nimbus).
+- **bff-service** y demás microservicios validan tokens usando el endpoint JWKS dinámico del auth-service.
+- La clave pública se descarga una sola vez y se cachea. Solo se re-descarga si aparece un `kid` desconocido (permite rotación de claves sin redesploy).
+- El auto-config centralizado vive en `gwent-security` (`GwentJwtDecoderAutoConfig`) y se activa con la propiedad `gwent.security.jwt.jwks-uri`.
+
+### Flujo: registro de usuario
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Cliente
+    participant BFF as BFF :8080
+    participant AS as auth-service :8085
+    participant JS as jugador-service :8082
+    participant DBA as MySQL (gw_user)
+    participant DBJ as MySQL (gw_jugador)
+
+    C->>BFF: POST /api/v1/auth/register<br/>{username, password, email, gameId, tag}
+    BFF->>AS: POST /auth/v1/register
+    AS->>DBA: Verifica unicidad (username, email, gameId#tag)
+    DBA-->>AS: OK
+    AS->>DBA: INSERT gw_user (UUID generado en PrePersist)
+    DBA-->>AS: usuario creado
+    AS-->>BFF: { accessToken, tokenType, expiresIn }
+    BFF->>JS: POST /api/v1/players {apodo=username}<br/>Authorization: Bearer <accessToken>
+    JS->>JS: Valida JWT → extrae userId del token
+    JS->>DBJ: INSERT gw_jugador (userId, apodo, nivel=1, stats=0)
+    DBJ-->>JS: perfil creado
+    JS-->>BFF: PlayerProfileDTO
+    BFF-->>C: { accessToken, tokenType, expiresIn }
+```
+
+### Flujo: login y obtención del JWT
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Cliente
+    participant BFF as BFF :8080
+    participant AS as auth-service :8085
+    participant DB as MySQL (gw_user)
+
+    C->>BFF: POST /api/v1/auth/login<br/>{identifier, password}
+    note over BFF: identifier puede ser email,<br/>gameId#tag o username
+    BFF->>AS: POST /auth/v1/login (proxy)
+    AS->>DB: Busca usuario por identifier
+    DB-->>AS: UserEntity
+    AS->>AS: Verifica password (BCrypt)
+    AS->>AS: Firma JWT RS256<br/>claims: sub=userId, userId,<br/>username, gameId, tag<br/>TTL: 900s
+    AS-->>BFF: { token, expiresInSeconds }
+    BFF-->>C: { token, expiresInSeconds }
+```
+
+### Flujo: request autenticado (BFF → microservicio interno)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Cliente
+    participant BFF as BFF :8080
+    participant GS as gwent-security<br/>(NimbusJwtDecoder)
+    participant JWKS as auth-service<br/>/.well-known/jwks.json
+    participant MS as microservicio interno
+
+    C->>BFF: GET /api/algo<br/>Authorization: Bearer <token>
+    BFF->>GS: Valida JWT
+    alt clave en cache
+        GS-->>BFF: JWT válido → Actor extraído
+    else kid desconocido / primer arranque
+        GS->>JWKS: GET http://localhost:8085/.well-known/jwks.json
+        JWKS-->>GS: { keys: [RSA public key] }
+        GS->>GS: Cachea clave
+        GS-->>BFF: JWT válido → Actor extraído
+    end
+    BFF->>MS: llamada interna<br/>Authorization: Bearer <token> (propagado por AuthForwardingInterceptor)
+    MS->>MS: Valida JWT con su propio NimbusJwtDecoder<br/>(mismo JWKS endpoint)
+    MS-->>BFF: respuesta
+    BFF-->>C: respuesta
+```
+
+---
+
 ## Gestión de identidad (regla base)
 
 - El **actorPlayerId** se obtiene desde el token en el BFF.
 - El cliente **no envía playerId del actor**.
-- El BFF propaga el actor a los microservicios internos.
+- El BFF propaga el Bearer token completo a los microservicios internos (via `AuthForwardingInterceptor`).
+- Cada microservicio reconstruye el `Actor` del JWT con su propio `ActorResolver`.
 
-Ejemplo interno:
+JWT claims:
 ```json
 {
-  "actorPlayerId": "uuid"
+  "sub": "uuid-del-usuario",
+  "userId": "uuid-del-usuario",
+  "username": "JohnDoe",
+  "gameId": "player99",
+  "tag": "1234"
 }
 ```
 
@@ -71,51 +164,84 @@ Todos los endpoints expuestos al frontend viven bajo `/api`.
 
 ---
 
-## 1. Jugadores
+## 0. Autenticación
 
-### Crear jugador
+### Registro
 ```
-POST /api/players
+POST /api/v1/auth/register
+Body: { "username": "string", "password": "string", "email": "string", "gameId": "string", "tag": "string" }
 ```
-**Descripción:** Registra un nuevo jugador.
+Crea usuario en auth-service y perfil en jugador-service. Devuelve JWT.
 
-**TO DO**
-- Hash de contraseña
-- Validar unicidad (usuario / tag)
+### Login
+```
+POST /api/v1/auth/login
+Body: { "identifier": "string", "password": "string" }
+```
+`identifier` puede ser `username`, `email` o `gameId#tag`. Devuelve JWT.
+
+### Cambiar contraseña
+```
+PATCH /api/v1/auth/password
+Authorization: Bearer <token>
+Body: { "currentPassword": "string", "newPassword": "string" }
+```
+Requiere JWT. Verifica la contraseña actual antes de actualizar.
 
 ---
 
-### Obtener jugador
+## 1. Jugadores
+
+El perfil de jugador se crea automáticamente en `jugador-service` cuando el usuario se registra (ver flujo de registro). La entidad `JugadorEntity` vive en jugador-service y está vinculada al `userId` de auth-service.
+
+### Campos del perfil de jugador (`gw_jugador`)
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `userId` | UUID (PK) | Igual al `userId` de `UserEntity` en auth-service |
+| `apodo` | String (unique) | Nombre de pantalla. Inicialmente = `username` del registro |
+| `avatarUrl` | String | Opcional |
+| `nivel` | int | Empieza en 1 |
+| `victorias` | int | Contador de victorias |
+| `derrotas` | int | Contador de derrotas |
+| `empates` | int | Contador de empates |
+| `createdAt` | LocalDateTime | Timestamp de creación |
+
+### Endpoint interno: crear perfil
+```
+POST /api/v1/players          (jugador-service interno, puerto 8082)
+Authorization: Bearer <token>
+Body: { "apodo": "string" }
+```
+Llamado por el BFF durante el registro. El `userId` se extrae del JWT.
+
+---
+
+### Obtener mi perfil ✅
+```
+GET /api/players/me
+Authorization: Bearer <token>
+```
+Devuelve el perfil del jugador autenticado. Si el perfil no existe aún, se crea automáticamente (lazy creation).
+
+### Actualizar mi perfil ✅
+```
+PATCH /api/players/me
+Authorization: Bearer <token>
+Body: { "apodo": "string", "avatarUrl": "string" }
+```
+Ambos campos son opcionales. Devuelve el perfil actualizado.
+
+### Obtener perfil público de otro jugador
 ```
 GET /api/players/{playerId}
 ```
-**Descripción:** Obtiene información pública del jugador.
+**TO DO** — Implementar en jugador-service y exponer vía BFF.
 
-**TO DO**
-- Manejar jugador eliminado
-
----
-
-### Actualizar perfil
+### Eliminar mi perfil
 ```
-PATCH /api/players/{playerId}
+DELETE /api/players/me
 ```
-**Descripción:** Actualiza parcialmente el perfil (ej: nickname).
-
-**TO DO**
-- Validar campos permitidos
-- Verificar ownership
-
----
-
-### Eliminar jugador
-```
-DELETE /api/players/{playerId}
-```
-**Descripción:** Elimina un jugador.
-
-**TO DO**
-- Verificar partidas activas
+**TO DO** — Verificar partidas activas antes de eliminar.
 
 ---
 
@@ -285,6 +411,25 @@ sequenceDiagram
     ingame-service-->>BFF: stateVersion
     BFF-->>Frontend: stateVersion
 ```
+
+---
+
+## Manejo de errores
+
+Todos los servicios devuelven errores con la estructura `ErrorDTO`:
+
+```json
+{
+  "serviceOrigin": "jugador-service",
+  "status": 404,
+  "message": "Player not found",
+  "type": null,
+  "path": null,
+  "body": null
+}
+```
+
+El BFF propaga el `ErrorDTO` del servicio interno al cliente con el mismo código HTTP. Los errores de transporte (servicio caído) se traducen a `502 Bad Gateway`.
 
 ---
 

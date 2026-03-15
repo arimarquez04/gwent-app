@@ -1,5 +1,6 @@
 package com.arimar.gwent.authservice.service;
 
+import com.arimar.gwent.authservice.dto.ChangePasswordRequest;
 import com.arimar.gwent.authservice.exception.ConflictException;
 import com.arimar.gwent.authservice.exception.UnauthorizedException;
 import com.arimar.gwent.authservice.repository.UserEntityRepository;
@@ -8,8 +9,10 @@ import com.arimar.gwent.contracts.auth.request.LoginRequest;
 import com.arimar.gwent.contracts.auth.request.RegisterRequest;
 import com.arimar.gwent.contracts.auth.response.TokenResponse;
 import com.arimar.gwent.domain.user.UserEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class AuthService {
@@ -66,6 +69,16 @@ public class AuthService {
         //tokenResponse.setTokenType("Bearer")
         tokenResponse.setExpiresIn(issued.expiresInSeconds());
         return tokenResponse;
+    }
+
+    public void changePassword(ChangePasswordRequest req) {
+        UserEntity user = repo.findByUsername(req.getUsername())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        if (!encoder.matches(req.getCurrentPassword(), user.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Current password is incorrect");
+        }
+        user.setPassword(encoder.encode(req.getNewPassword()));
+        repo.save(user);
     }
 
     private java.util.Optional<UserEntity> findByIdentifier(String identifier) {

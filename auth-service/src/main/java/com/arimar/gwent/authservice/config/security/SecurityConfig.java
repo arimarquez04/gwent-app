@@ -27,7 +27,7 @@ public class SecurityConfig {
                                 "/error").permitAll()
                         .requestMatchers("/actuator/health/**").permitAll()
                         .requestMatchers("/.well-known/jwks.json").permitAll()
-                        .anyRequest().authenticated()
+                        .anyRequest().denyAll()
                 )
                 .httpBasic(httpBasic -> httpBasic.disable())
                 .formLogin(form -> form.disable())

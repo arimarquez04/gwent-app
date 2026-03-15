@@ -5,6 +5,7 @@ import com.arimar.gwent.jugadorservice.config.security.ActorResolver;
 import com.arimar.gwent.jugadorservice.domain.player.JugadorService;
 import com.arimar.gwent.jugadorservice.dto.CreatePlayerRequest;
 import com.arimar.gwent.jugadorservice.dto.PlayerProfileDTO;
+import com.arimar.gwent.jugadorservice.dto.UpdatePlayerRequest;
 import com.arimar.gwent.security.actor.Actor;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,6 +40,28 @@ public class JugadorController {
         return GenericResponseDTO.<PlayerProfileDTO>builder()
                 .serviceOrigin(serviceName)
                 .status(HttpStatus.CREATED.value())
+                .data(profile)
+                .build();
+    }
+
+    @GetMapping("/players/me")
+    public GenericResponseDTO<PlayerProfileDTO> getProfile() {
+        Actor actor = actorResolver.currentActor();
+        PlayerProfileDTO profile = jugadorService.getProfile(actor.getUserId());
+        return GenericResponseDTO.<PlayerProfileDTO>builder()
+                .serviceOrigin(serviceName)
+                .status(HttpStatus.OK.value())
+                .data(profile)
+                .build();
+    }
+
+    @PatchMapping("/players/me")
+    public GenericResponseDTO<PlayerProfileDTO> updateProfile(@Valid @RequestBody UpdatePlayerRequest req) {
+        Actor actor = actorResolver.currentActor();
+        PlayerProfileDTO profile = jugadorService.updateProfile(actor.getUserId(), req);
+        return GenericResponseDTO.<PlayerProfileDTO>builder()
+                .serviceOrigin(serviceName)
+                .status(HttpStatus.OK.value())
                 .data(profile)
                 .build();
     }

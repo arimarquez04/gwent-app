@@ -1,5 +1,6 @@
 package com.arimar.gwent.authservice.controller;
 
+import com.arimar.gwent.authservice.dto.ChangePasswordRequest;
 import com.arimar.gwent.authservice.service.AuthService;
 import com.arimar.gwent.common.response.GenericResponseDTO;
 import com.arimar.gwent.common.utils.exception.BadRequestException;
@@ -39,7 +40,7 @@ public class AuthControllerImpl implements AuthController {
                 .build();
     }
 
-    @ResponseStatus(HttpStatus.ACCEPTED)
+    @ResponseStatus(HttpStatus.OK)
     @Override
     public GenericResponseDTO<TokenResponse> login(@Valid @RequestBody LoginRequest req,
                                                    BindingResult bindingResult) throws BadRequestException {
@@ -49,9 +50,22 @@ public class AuthControllerImpl implements AuthController {
         return GenericResponseDTO.<TokenResponse>builder()
                 .data(auth.login(req))
                 .serviceOrigin(serviceOrigin)
-                .status(HttpStatus.CREATED.value())
+                .status(HttpStatus.OK.value())
                 .build();
     }
 
+    @Override
+    public GenericResponseDTO<String> changePassword(@Valid @RequestBody ChangePasswordRequest req,
+                                                     BindingResult bindingResult) throws BadRequestException {
+        if (bindingResult.hasErrors()) {
+            throw new BadRequestException(bindingResult);
+        }
+        auth.changePassword(req);
+        return GenericResponseDTO.<String>builder()
+                .data("Password changed successfully")
+                .serviceOrigin(serviceOrigin)
+                .status(HttpStatus.OK.value())
+                .build();
+    }
 
 }

@@ -45,5 +45,9 @@ public class JugadorEntity {
     @PrePersist
     void onCreate() {
         this.createdAt = LocalDateTime.now();
+        this.empates = 0;
+        this.derrotas = 0;
+        this.victorias = 0;
+        this.nivel = 0;
     }
 }

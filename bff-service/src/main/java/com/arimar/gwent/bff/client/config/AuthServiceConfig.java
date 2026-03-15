@@ -15,5 +15,6 @@ public class AuthServiceConfig {
     private String v1Version;
     private String register;
     private String login;
+    private String changePasswordUrl;
 }
 

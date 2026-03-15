@@ -2,6 +2,7 @@ package com.arimar.gwent.authservice.controller;
 
 import com.arimar.gwent.authservice.config.docs.envelop.StringEnvelope;
 import com.arimar.gwent.authservice.config.docs.envelop.TokenResponseEnvelope;
+import com.arimar.gwent.authservice.dto.ChangePasswordRequest;
 import com.arimar.gwent.common.response.GenericResponseDTO;
 import com.arimar.gwent.common.utils.exception.BadRequestException;
 import com.arimar.gwent.contracts.auth.request.LoginRequest;
@@ -14,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -54,6 +56,20 @@ public interface AuthController {
     @PostMapping("/login")
     GenericResponseDTO<TokenResponse> login(
             @Valid @RequestBody LoginRequest req,
+            BindingResult bindingResult
+    ) throws BadRequestException;
+
+    @Operation(summary = "Cambio de contraseña", description = "Verifica la contraseña actual y la reemplaza por la nueva.")
+    @ApiResponse(responseCode = "200", description = "Contraseña cambiada exitosamente")
+    @ApiResponse(responseCode = "400", description = "Request inválido",
+            content = @Content(schema = @Schema(implementation = StringEnvelope.class))
+    )
+    @ApiResponse(responseCode = "401", description = "Contraseña actual incorrecta",
+            content = @Content(schema = @Schema(implementation = StringEnvelope.class))
+    )
+    @PatchMapping("/users/me/password")
+    GenericResponseDTO<String> changePassword(
+            @Valid @RequestBody ChangePasswordRequest req,
             BindingResult bindingResult
     ) throws BadRequestException;
 

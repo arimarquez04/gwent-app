@@ -1,7 +1,11 @@
 package com.arimar.gwent.jugadorservice.domain.player;
 
 import com.arimar.gwent.jugadorservice.dto.PlayerProfileDTO;
+import com.arimar.gwent.jugadorservice.dto.UpdatePlayerRequest;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.UUID;
 
@@ -20,6 +24,28 @@ public class JugadorService {
         entity.setApodo(apodo);
         JugadorEntity saved = jugadorRepository.save(entity);
         return toDTO(saved);
+    }
+
+    public PlayerProfileDTO getProfile(UUID userId) {
+        JugadorEntity entity = jugadorRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Player profile not found"));
+        return toDTO(entity);
+    }
+
+    public PlayerProfileDTO updateProfile(UUID userId, UpdatePlayerRequest req) {
+        JugadorEntity entity = jugadorRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Player profile not found"));
+        if (req.getApodo() != null) {
+            entity.setApodo(req.getApodo());
+        }
+        if (req.getAvatarUrl() != null) {
+            entity.setAvatarUrl(req.getAvatarUrl());
+        }
+        try {
+            return toDTO(jugadorRepository.save(entity));
+        } catch (DataIntegrityViolationException e) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Apodo already taken");
+        }
     }
 
     private PlayerProfileDTO toDTO(JugadorEntity e) {
