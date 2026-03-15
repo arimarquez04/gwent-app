@@ -1,0 +1,632 @@
+{
+  "info": {
+    "name": "Gwent MS API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "token",   "value": "" }
+  ],
+  "item": [
+    {
+      "name": "0. Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/v1/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"password123\",\n  \"email\": \"test@example.com\",\n  \"gameId\": \"testgame\",\n  \"tag\": \"1234\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.accessToken) {",
+                  "  pm.collectionVariables.set('token', json.data.accessToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/v1/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"testuser\",\n  \"password\": \"password123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login (por email)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/v1/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login (por gameId#tag)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/v1/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"testgame#1234\",\n  \"password\": \"password123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login (credenciales incorrectas → 401)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/v1/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"testuser\",\n  \"password\": \"wrongpassword\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Cambiar contraseña",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/password",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"password123\",\n  \"newPassword\": \"newpassword456\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Cambiar contraseña (password incorrecta → 401)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/password",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"wrong\",\n  \"newPassword\": \"newpassword456\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "1. Jugadores",
+      "item": [
+        {
+          "name": "Obtener mi perfil",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/players/me"
+          }
+        },
+        {
+          "name": "Actualizar mi perfil (apodo)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/api/players/me",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"apodo\": \"NuevoApodo\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Actualizar mi perfil (avatarUrl)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/api/players/me",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"avatarUrl\": \"https://example.com/avatar.png\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Actualizar mi perfil (ambos campos)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/api/players/me",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"apodo\": \"OtroApodo\",\n  \"avatarUrl\": \"https://example.com/avatar2.png\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Sin token → 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/players/me"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Cartas — sin filtro",
+      "item": [
+        {
+          "name": "Todas las cartas",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/v1/cards"
+          }
+        },
+        {
+          "name": "Sin token → 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/cards"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Cartas — por facción",
+      "item": [
+        {
+          "name": "REINO_DEL_NORTE",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards?faccion=REINO_DEL_NORTE",
+              "query": [{ "key": "faccion", "value": "REINO_DEL_NORTE" }]
+            }
+          }
+        },
+        {
+          "name": "NILFGAARD",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards?faccion=NILFGAARD",
+              "query": [{ "key": "faccion", "value": "NILFGAARD" }]
+            }
+          }
+        },
+        {
+          "name": "MONSTRUOS",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards?faccion=MONSTRUOS",
+              "query": [{ "key": "faccion", "value": "MONSTRUOS" }]
+            }
+          }
+        },
+        {
+          "name": "SCOIA_TAEL",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards?faccion=SCOIA_TAEL",
+              "query": [{ "key": "faccion", "value": "SCOIA_TAEL" }]
+            }
+          }
+        },
+        {
+          "name": "SKELLIGE",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards?faccion=SKELLIGE",
+              "query": [{ "key": "faccion", "value": "SKELLIGE" }]
+            }
+          }
+        },
+        {
+          "name": "NEUTRAL",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards?faccion=NEUTRAL",
+              "query": [{ "key": "faccion", "value": "NEUTRAL" }]
+            }
+          }
+        },
+        {
+          "name": "Facción inválida → 400",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards?faccion=INVALIDA",
+              "query": [{ "key": "faccion", "value": "INVALIDA" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Cartas — por fila",
+      "item": [
+        {
+          "name": "CUERPO_A_CUERPO",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards?fila=CUERPO_A_CUERPO",
+              "query": [{ "key": "fila", "value": "CUERPO_A_CUERPO" }]
+            }
+          }
+        },
+        {
+          "name": "DISTANCIA",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards?fila=DISTANCIA",
+              "query": [{ "key": "fila", "value": "DISTANCIA" }]
+            }
+          }
+        },
+        {
+          "name": "ASEDIO",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards?fila=ASEDIO",
+              "query": [{ "key": "fila", "value": "ASEDIO" }]
+            }
+          }
+        },
+        {
+          "name": "AGIL",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards?fila=AGIL",
+              "query": [{ "key": "fila", "value": "AGIL" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Cartas — por tipo",
+      "item": [
+        {
+          "name": "UNIDAD",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards?tipo=UNIDAD",
+              "query": [{ "key": "tipo", "value": "UNIDAD" }]
+            }
+          }
+        },
+        {
+          "name": "CLIMA",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards?tipo=CLIMA",
+              "query": [{ "key": "tipo", "value": "CLIMA" }]
+            }
+          }
+        },
+        {
+          "name": "ESPECIAL",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards?tipo=ESPECIAL",
+              "query": [{ "key": "tipo", "value": "ESPECIAL" }]
+            }
+          }
+        },
+        {
+          "name": "esEspecial=true (CLIMA + ESPECIAL)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards?esEspecial=true",
+              "query": [{ "key": "esEspecial", "value": "true" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Cartas — por héroe y habilidad",
+      "item": [
+        {
+          "name": "Solo héroes",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards?esHeroe=true",
+              "query": [{ "key": "esHeroe", "value": "true" }]
+            }
+          }
+        },
+        {
+          "name": "No héroes",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards?esHeroe=false",
+              "query": [{ "key": "esHeroe", "value": "false" }]
+            }
+          }
+        },
+        {
+          "name": "Habilidad MEDICO",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards?habilidad=MEDICO",
+              "query": [{ "key": "habilidad", "value": "MEDICO" }]
+            }
+          }
+        },
+        {
+          "name": "Habilidad ESPIA",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards?habilidad=ESPIA",
+              "query": [{ "key": "habilidad", "value": "ESPIA" }]
+            }
+          }
+        },
+        {
+          "name": "Habilidad ENLACE_APRETADO",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards?habilidad=ENLACE_APRETADO",
+              "query": [{ "key": "habilidad", "value": "ENLACE_APRETADO" }]
+            }
+          }
+        },
+        {
+          "name": "Habilidad MUSTER",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards?habilidad=MUSTER",
+              "query": [{ "key": "habilidad", "value": "MUSTER" }]
+            }
+          }
+        },
+        {
+          "name": "Habilidad DECOY",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards?habilidad=DECOY",
+              "query": [{ "key": "habilidad", "value": "DECOY" }]
+            }
+          }
+        },
+        {
+          "name": "Habilidad REFUERZO_MORAL",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards?habilidad=REFUERZO_MORAL",
+              "query": [{ "key": "habilidad", "value": "REFUERZO_MORAL" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Cartas — filtros combinados",
+      "item": [
+        {
+          "name": "RDN + CaC",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards?faccion=REINO_DEL_NORTE&fila=CUERPO_A_CUERPO",
+              "query": [
+                { "key": "faccion", "value": "REINO_DEL_NORTE" },
+                { "key": "fila",    "value": "CUERPO_A_CUERPO" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "NILFGAARD + no héroes",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards?faccion=NILFGAARD&esHeroe=false",
+              "query": [
+                { "key": "faccion",  "value": "NILFGAARD" },
+                { "key": "esHeroe", "value": "false" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "NEUTRAL + esEspecial",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards?faccion=NEUTRAL&esEspecial=true",
+              "query": [
+                { "key": "faccion",    "value": "NEUTRAL" },
+                { "key": "esEspecial", "value": "true" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Héroes de cualquier facción",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards?esHeroe=true",
+              "query": [{ "key": "esHeroe", "value": "true" }]
+            }
+          }
+        },
+        {
+          "name": "Médicos no-héroes",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards?habilidad=MEDICO&esHeroe=false",
+              "query": [
+                { "key": "habilidad", "value": "MEDICO" },
+                { "key": "esHeroe",   "value": "false" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "MONSTRUOS + CUERPO_A_CUERPO",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards?faccion=MONSTRUOS&fila=CUERPO_A_CUERPO",
+              "query": [
+                { "key": "faccion", "value": "MONSTRUOS" },
+                { "key": "fila",    "value": "CUERPO_A_CUERPO" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "ENLACE_APRETADO DISTANCIA",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards?habilidad=ENLACE_APRETADO&fila=DISTANCIA",
+              "query": [
+                { "key": "habilidad", "value": "ENLACE_APRETADO" },
+                { "key": "fila",      "value": "DISTANCIA" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "SKELLIGE + CaC + no héroe",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards?faccion=SKELLIGE&fila=CUERPO_A_CUERPO&esHeroe=false",
+              "query": [
+                { "key": "faccion",  "value": "SKELLIGE" },
+                { "key": "fila",     "value": "CUERPO_A_CUERPO" },
+                { "key": "esHeroe", "value": "false" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Cartas — por ID",
+      "item": [
+        {
+          "name": "Carta ID 1",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/v1/cards/1"
+          }
+        },
+        {
+          "name": "Carta ID 5",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/v1/cards/5"
+          }
+        },
+        {
+          "name": "Carta ID 10",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/v1/cards/10"
+          }
+        },
+        {
+          "name": "Carta inexistente → 404",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/v1/cards/9999"
+          }
+        }
+      ]
+    }
+  ]
+}

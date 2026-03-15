@@ -228,7 +228,47 @@ sequenceDiagram
 
 ---
 
-## 7. Flujo de errores entre servicios
+## 7. Consultar catálogo de cartas
+
+**Acción:** El usuario autenticado consulta el catálogo de cartas con filtros combinables.
+
+```
+GET /api/v1/cards
+GET /api/v1/cards?faccion=REINO_DEL_NORTE&fila=ASEDIO
+GET /api/v1/cards?esEspecial=true
+GET /api/v1/cards?esHeroe=true&habilidad=MEDICO
+GET /api/v1/cards/{id}
+Authorization: Bearer <token>
+```
+
+Filtros disponibles (todos opcionales, combinables): `faccion`, `fila`, `tipo`, `esHeroe`, `habilidad`, `esEspecial` (tipo CLIMA + ESPECIAL, tiene precedencia sobre `tipo`).
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Cliente
+    participant BFF as BFF :8080
+    participant IS as ingame-service :8083
+    participant DB as MySQL (gw_carta_catalogo)
+
+    C->>BFF: GET /api/v1/cards[?filtros]
+    BFF->>BFF: Valida JWT
+    BFF->>IS: GET /ingame/v1/cards[?filtros] (Bearer propagado)
+    IS->>IS: Valida JWT
+    IS->>IS: Construye JPA Specification<br/>combinando predicados activos
+    IS->>DB: SELECT * WHERE [predicados AND]
+    DB-->>IS: List<CartaCatalogo>
+    IS-->>BFF: GenericResponseDTO { List<CartaCatalogoDTO> }
+    BFF-->>C: GenericResponseDTO { List<CartaCatalogoDTO> }
+```
+
+**Errores posibles:**
+- `400 Bad Request` — valor de enum inválido (incluye valores permitidos en el mensaje)
+- `404 Not Found` — carta no encontrada (solo para `GET /cards/{id}`)
+
+---
+
+## 8. Flujo de errores entre servicios
 
 **Contexto:** Cómo un error en un microservicio interno llega al cliente.
 

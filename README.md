@@ -2,7 +2,7 @@
 
 Backend para una aplicación de simulación del juego **Gwent (The Witcher 3)**, basado en **microservicios con Spring Boot** y un **BFF (Backend for Frontend)** como único punto de entrada.
 
-> **Estado del proyecto:** En desarrollo activo. auth-service, jugador-service y bff-service son funcionales. ingame-service y solicitud-service son esqueletos vacíos.
+> **Estado del proyecto:** En desarrollo activo. auth-service, jugador-service, ingame-service y bff-service son funcionales. solicitud-service es un esqueleto vacío.
 
 ---
 
@@ -19,7 +19,7 @@ Backend para una aplicación de simulación del juego **Gwent (The Witcher 3)**,
 |---|---|---|
 | **bff-service** | 8080 | Funcional — punto de entrada público `/api/**` |
 | **jugador-service** | 8082 | Funcional — perfiles de jugador |
-| **ingame-service** | 8083 | Esqueleto vacío |
+| **ingame-service** | 8083 | Funcional — catálogo de cartas |
 | **auth-service** | 8085 | Funcional — autenticación JWT RS256 |
 | **solicitud-service** | — | Esqueleto vacío |
 | **ranking-service** | — | No existe aún |
@@ -247,14 +247,47 @@ DELETE /api/players/me
 
 ## 2. Cartas
 
-### Listar cartas
+### Listar cartas del catálogo ✅
 ```
-GET /api/cards
+GET /api/v1/cards
+GET /api/v1/cards?faccion=REINO_DEL_NORTE&fila=ASEDIO
+GET /api/v1/cards?esEspecial=true
+GET /api/v1/cards?esHeroe=true&habilidad=MEDICO
+Authorization: Bearer <token>
 ```
-**Descripción:** Devuelve el catálogo de cartas precargadas.
+Devuelve el catálogo global de cartas. Todos los filtros son opcionales y combinables entre sí:
 
-**TO DO**
-- Filtros por facción
+| Param | Tipo | Valores |
+|---|---|---|
+| `faccion` | enum | `REINO_DEL_NORTE`, `NILFGAARD`, `MONSTRUOS`, `SCOIA_TAEL`, `SKELLIGE`, `NEUTRAL` |
+| `fila` | enum | `CUERPO_A_CUERPO`, `DISTANCIA`, `ASEDIO`, `AGIL` |
+| `tipo` | enum | `UNIDAD`, `CLIMA`, `ESPECIAL` |
+| `esHeroe` | boolean | `true` / `false` |
+| `habilidad` | enum | `NINGUNA`, `ESPIA`, `MEDICO`, `ENLACE_APRETADO`, `REFUERZO_MORAL`, `DECOY`, `COMANDANTE_INVOCACION`, `ESCUDO_IMPENETRABLE`, `VÍNCULO_ESTRECHO`, `MUSTER` |
+| `esEspecial` | boolean | `true` → retorna tipo `CLIMA` + `ESPECIAL`. Tiene precedencia sobre `tipo`. |
+
+### Obtener carta por ID ✅
+```
+GET /api/v1/cards/{id}
+Authorization: Bearer <token>
+```
+Devuelve una carta específica del catálogo.
+
+### Campos de la carta (`gw_carta_catalogo`)
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `id` | Long (PK) | Autoincremental |
+| `nombre` | String | Nombre de la carta |
+| `faccion` | Enum | `REINO_DEL_NORTE`, `NILFGAARD`, `MONSTRUOS`, `SCOIA_TAEL`, `SKELLIGE`, `NEUTRAL` |
+| `tipo` | Enum | `UNIDAD`, `CLIMA`, `ESPECIAL` |
+| `fila` | Enum (nullable) | `CUERPO_A_CUERPO`, `DISTANCIA`, `ASEDIO`, `AGIL` |
+| `fuerza` | Integer (nullable) | Fuerza de la unidad |
+| `habilidad` | Enum | `NINGUNA`, `ESPIA`, `MEDICO`, `ENLACE_APRETADO`, `REFUERZO_MORAL`, `DECOY`, `COMANDANTE_INVOCACION`, `ESCUDO_IMPENETRABLE`, `VÍNCULO_ESTRECHO`, `MUSTER` |
+| `esHeroe` | boolean | Las cartas héroe no se ven afectadas por efectos de clima |
+| `imagenUrl` | String (nullable) | URL de la imagen |
+| `createdAt` | LocalDateTime | Timestamp de creación |
+| `modifiedAt` | LocalDateTime (nullable) | Última modificación |
+| `deletedAt` | LocalDateTime (nullable) | Soft delete |
 
 ---
 

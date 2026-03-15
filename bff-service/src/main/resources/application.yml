@@ -36,7 +36,9 @@ gwent:
       create-player-url: "/v1/players"
       players-me-url: "/v1/players/me"
     ingame:
+      name: "ingame-service"
       base-url: "http://localhost:8083"
+      cards-url: "/ingame/v1/cards"
     auth:
       name: "auth-service"
       v1-version: "/v1"

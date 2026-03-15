@@ -48,6 +48,6 @@ public class JugadorEntity {
         this.empates = 0;
         this.derrotas = 0;
         this.victorias = 0;
-        this.nivel = 0;
+        this.nivel = 1;
     }
 }

@@ -1,4 +1,4 @@
-package com.arimar.gwent.jugadorservice.exception;
+package com.arimar.gwent.ingameservice.exception;
 
 import com.arimar.gwent.common.exception.ErrorDTO;
 import jakarta.servlet.http.HttpServletResponse;
@@ -37,7 +37,7 @@ public class GlobalExceptionHandler {
         return ErrorDTO.builder()
                 .serviceOrigin(serviceOrigin)
                 .status(HttpStatus.CONFLICT)
-                .message("El recurso ya existe o viola una restriccion de unicidad")
+                .message("Data integrity violation")
                 .build();
     }
 

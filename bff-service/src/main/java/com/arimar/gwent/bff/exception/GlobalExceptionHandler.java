@@ -13,6 +13,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.stream.Collectors;
@@ -72,6 +73,19 @@ public class GlobalExceptionHandler {
                 .serviceOrigin(serviceOrigin)
                 .status(HttpStatus.BAD_REQUEST)
                 .message(message)
+                .build();
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorDTO typeMismatch(MethodArgumentTypeMismatchException ex) {
+        String allowed = ex.getRequiredType() != null && ex.getRequiredType().isEnum()
+                ? " Valores permitidos: " + java.util.Arrays.toString(ex.getRequiredType().getEnumConstants())
+                : "";
+        return ErrorDTO.builder()
+                .serviceOrigin(serviceOrigin)
+                .status(HttpStatus.BAD_REQUEST)
+                .message("Valor inválido '" + ex.getValue() + "' para el parámetro '" + ex.getName() + "'." + allowed)
                 .build();
     }
 
