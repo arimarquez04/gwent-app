@@ -1,10 +1,10 @@
 package com.arimar.gwent.ingameservice.controller;
 
 import com.arimar.gwent.common.response.GenericResponseDTO;
-import com.arimar.gwent.ingameservice.domain.Faccion;
-import com.arimar.gwent.ingameservice.domain.FilaCarta;
-import com.arimar.gwent.ingameservice.domain.HabilidadCarta;
-import com.arimar.gwent.ingameservice.domain.TipoCarta;
+import com.arimar.gwent.ingameservice.domain.enums.Faccion;
+import com.arimar.gwent.ingameservice.domain.enums.FilaCarta;
+import com.arimar.gwent.ingameservice.domain.enums.HabilidadCarta;
+import com.arimar.gwent.ingameservice.domain.enums.TipoCarta;
 import com.arimar.gwent.ingameservice.dto.CartaCatalogoDTO;
 import com.arimar.gwent.ingameservice.service.CartaCatalogoService;
 import lombok.RequiredArgsConstructor;

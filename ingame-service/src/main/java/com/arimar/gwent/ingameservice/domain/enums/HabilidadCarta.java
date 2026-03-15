@@ -1,4 +1,4 @@
-package com.arimar.gwent.ingameservice.domain;
+package com.arimar.gwent.ingameservice.domain.enums;
 
 public enum HabilidadCarta {
     NINGUNA,

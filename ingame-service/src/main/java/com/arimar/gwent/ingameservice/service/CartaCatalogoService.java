@@ -1,10 +1,11 @@
 package com.arimar.gwent.ingameservice.service;
 
-import com.arimar.gwent.ingameservice.domain.Faccion;
-import com.arimar.gwent.ingameservice.domain.FilaCarta;
-import com.arimar.gwent.ingameservice.domain.HabilidadCarta;
-import com.arimar.gwent.ingameservice.domain.TipoCarta;
+import com.arimar.gwent.ingameservice.domain.enums.Faccion;
+import com.arimar.gwent.ingameservice.domain.enums.FilaCarta;
+import com.arimar.gwent.ingameservice.domain.enums.HabilidadCarta;
+import com.arimar.gwent.ingameservice.domain.enums.TipoCarta;
 import com.arimar.gwent.ingameservice.dto.CartaCatalogoDTO;
+import com.arimar.gwent.ingameservice.entity.CartaCatalogo;
 import com.arimar.gwent.ingameservice.repository.CartaCatalogoRepository;
 import com.arimar.gwent.ingameservice.repository.CartaCatalogoSpec;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,7 @@ public class CartaCatalogoService {
 
     public List<CartaCatalogoDTO> getAll(Faccion faccion, FilaCarta fila, TipoCarta tipo,
                                          Boolean esHeroe, HabilidadCarta habilidad, Boolean esEspecial) {
-        Specification<com.arimar.gwent.ingameservice.entity.CartaCatalogo> spec = Specification
+        Specification<CartaCatalogo> spec = Specification
                 .where(CartaCatalogoSpec.withFaccion(faccion))
                 .and(CartaCatalogoSpec.withFila(fila))
                 .and(Boolean.TRUE.equals(esEspecial)

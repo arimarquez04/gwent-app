@@ -32,12 +32,20 @@ public class IngameServiceClient {
         addParam(url, "faccion", faccion);
         addParam(url, "fila", fila);
         addParam(url, "tipo", tipo);
-        if (esHeroe != null)    addParam(url, "esHeroe",    esHeroe.toString());
+        if (esHeroe != null) {
+            addParam(url, "esHeroe", esHeroe.toString());
+        }
         addParam(url, "habilidad", habilidad);
-        if (esEspecial != null) addParam(url, "esEspecial", esEspecial.toString());
+        if (esEspecial != null){
+            addParam(url, "esEspecial", esEspecial.toString());
+        }
         String finalUrl = url.toString();
-        ServiceCallResponse<List<CartaCatalogoDTO>> response = invoker.exchange(
-                HttpMethod.GET, finalUrl, null, Map.of(),
+        ServiceCallResponse<List<CartaCatalogoDTO>> response =
+                invoker.exchange(
+                HttpMethod.GET,
+                        finalUrl,
+                        null,
+                        Map.of(),
                 new ParameterizedTypeReference<>() {}
         );
         if (response.isOk()) return response.ok();
