@@ -272,6 +272,50 @@ sequenceDiagram
 
 **Contexto:** Cómo un error en un microservicio interno llega al cliente.
 
+## 8. Desbloquear múltiples cartas
+
+**Acción:** El jugador desbloquea una o más cartas del catálogo en una sola llamada.
+
+```
+POST /api/v1/players/me/cards
+Authorization: Bearer <token>
+Body: { "cardIds": [1, 2, 3] }
+```
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Cliente
+    participant BFF as BFF :8080
+    participant IS as ingame-service :8083
+    participant DB as MySQL
+
+    C->>BFF: POST /api/v1/players/me/cards { cardIds: [1,2,3] }
+    BFF->>BFF: Valida JWT
+    BFF->>IS: POST /ingame/v1/players/me/cards (Bearer propagado)
+    IS->>IS: Valida JWT → extrae userId
+
+    IS->>DB: SELECT gw_carta_catalogo WHERE id IN (1,2,3)
+    DB-->>IS: 3 cartas encontradas
+
+    IS->>DB: SELECT gw_carta_jugador WHERE jugador_id=? AND carta_catalogo_id IN (1,2,3)
+    DB-->>IS: carta 1 ya desbloqueada
+
+    IS->>DB: INSERT gw_carta_jugador (carta 2)
+    IS->>DB: INSERT gw_carta_jugador (carta 3)
+    DB-->>IS: ok
+
+    IS-->>BFF: GenericResponseDTO { [CartaJugadorDTO x2] } (solo las nuevas)
+    BFF-->>C: GenericResponseDTO { [CartaJugadorDTO x2] }
+```
+
+**Errores posibles:**
+- `404 Not Found` — algún `cardId` no existe en el catálogo
+
+---
+
+## 9. Flujo de errores entre servicios
+
 ```mermaid
 sequenceDiagram
     autonumber

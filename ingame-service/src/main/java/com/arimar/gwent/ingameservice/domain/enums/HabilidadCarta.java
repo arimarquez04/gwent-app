@@ -9,6 +9,6 @@ public enum HabilidadCarta {
     DECOY,
     COMANDANTE_INVOCACION,
     ESCUDO_IMPENETRABLE,
-    VÍNCULO_ESTRECHO,
+    VINCULO_ESTRECHO,
     MUSTER
 }

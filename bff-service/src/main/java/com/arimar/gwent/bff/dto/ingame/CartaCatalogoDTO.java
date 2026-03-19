@@ -12,5 +12,6 @@ public class CartaCatalogoDTO {
     private Integer fuerza;
     private String habilidad;
     private boolean esHeroe;
+    private int maxCopias;
     private String imagenUrl;
 }

@@ -2,6 +2,8 @@ package com.arimar.gwent.bff.client;
 
 import com.arimar.gwent.bff.client.config.IngameServiceConfig;
 import com.arimar.gwent.bff.dto.ingame.CartaCatalogoDTO;
+import com.arimar.gwent.bff.dto.ingame.CartaJugadorDTO;
+import com.arimar.gwent.bff.dto.ingame.UnlockCardsRequest;
 import com.arimar.gwent.common.response.GenericResponseDTO;
 import com.arimar.gwent.communication.error.RemoteServiceErrorMapper;
 import com.arimar.gwent.communication.invoker.GenericRestInvoker;
@@ -56,6 +58,26 @@ public class IngameServiceClient {
         if (value != null && !value.isBlank()) {
             url.append(url.indexOf("?") >= 0 ? "&" : "?").append(name).append("=").append(value);
         }
+    }
+
+    public GenericResponseDTO<List<CartaJugadorDTO>> unlockCards(UnlockCardsRequest request) {
+        String url = cfg.getBaseUrl() + cfg.getPlayerCardsUrl();
+        ServiceCallResponse<List<CartaJugadorDTO>> response = invoker.exchange(
+                HttpMethod.POST, url, request, Map.of(),
+                new ParameterizedTypeReference<>() {}
+        );
+        if (response.isOk()) return response.ok();
+        throw errorMapper.toException(cfg.getName(), url, response.httpStatus(), response.error());
+    }
+
+    public GenericResponseDTO<List<CartaJugadorDTO>> getMyCards() {
+        String url = cfg.getBaseUrl() + cfg.getPlayerCardsUrl();
+        ServiceCallResponse<List<CartaJugadorDTO>> response = invoker.exchange(
+                HttpMethod.GET, url, null, Map.of(),
+                new ParameterizedTypeReference<>() {}
+        );
+        if (response.isOk()) return response.ok();
+        throw errorMapper.toException(cfg.getName(), url, response.httpStatus(), response.error());
     }
 
     public GenericResponseDTO<CartaCatalogoDTO> getCardById(Long id) {

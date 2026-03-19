@@ -293,25 +293,27 @@ Devuelve una carta específica del catálogo.
 
 ## 3. Desbloqueo de cartas
 
-### Desbloquear carta
+### Desbloquear múltiples cartas ✅
 ```
-POST /api/players/{playerId}/unlocks/cards
+POST /api/v1/players/me/cards
+Authorization: Bearer <token>
+Body: { "cardIds": [1, 2, 3] }
 ```
-**Descripción:** Desbloquea una carta para el jugador.
+Desbloquea una o más cartas del catálogo para el jugador autenticado. Las cartas ya desbloqueadas se omiten silenciosamente (idempotente). Devuelve solo las cartas **recién** desbloqueadas.
 
-**TO DO**
-- Evitar duplicados
-
----
-
-### Listar cartas desbloqueadas
+### Listar mis cartas desbloqueadas ✅
 ```
-GET /api/players/{playerId}/unlocks/cards
+GET /api/v1/players/me/cards
+Authorization: Bearer <token>
 ```
-**Descripción:** Lista cartas disponibles para mazos.
+Devuelve todas las cartas desbloqueadas del jugador autenticado, incluyendo los datos completos de cada carta del catálogo y la fecha de desbloqueo.
 
-**TO DO**
-- Cache
+### Campos de la respuesta (`CartaJugadorDTO`)
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `id` | Long | ID del registro de desbloqueo |
+| `unlockedAt` | LocalDateTime | Fecha y hora del desbloqueo |
+| `carta` | CartaCatalogoDTO | Datos completos de la carta |
 
 ---
 

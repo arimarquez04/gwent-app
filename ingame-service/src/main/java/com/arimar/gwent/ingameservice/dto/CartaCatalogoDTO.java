@@ -20,6 +20,7 @@ public class CartaCatalogoDTO {
     private Integer fuerza;
     private HabilidadCarta habilidad;
     private boolean esHeroe;
+    private int maxCopias;
     private String imagenUrl;
 
     public static CartaCatalogoDTO from(CartaCatalogo carta) {
@@ -32,6 +33,7 @@ public class CartaCatalogoDTO {
                 .fuerza(carta.getFuerza())
                 .habilidad(carta.getHabilidad())
                 .esHeroe(carta.isEsHeroe())
+                .maxCopias(carta.getMaxCopias())
                 .imagenUrl(carta.getImagenUrl())
                 .build();
     }

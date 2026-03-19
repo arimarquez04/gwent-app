@@ -42,6 +42,9 @@ public class CartaCatalogo {
     @Column(nullable = false)
     private boolean esHeroe;
 
+    @Column(nullable = false, columnDefinition = "int not null default 1")
+    private int maxCopias;
+
     private String imagenUrl;
 
     @Column(nullable = false, updatable = false)

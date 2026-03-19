@@ -13,4 +13,5 @@ public class IngameServiceConfig {
     private String name;
     private String baseUrl;
     private String cardsUrl;
+    private String playerCardsUrl;
 }
