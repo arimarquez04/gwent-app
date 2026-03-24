@@ -312,8 +312,9 @@ Devuelve todas las cartas desbloqueadas del jugador autenticado, incluyendo los 
 | Campo | Tipo | Descripción |
 |---|---|---|
 | `id` | Long | ID del registro de desbloqueo |
-| `unlockedAt` | LocalDateTime | Fecha y hora del desbloqueo |
-| `carta` | CartaCatalogoDTO | Datos completos de la carta |
+| `cantidad` | int | Copias que posee el jugador |
+| `unlockedAt` | LocalDateTime | Fecha y hora del primer desbloqueo |
+| `carta` | CartaCatalogoDTO | Datos completos de la carta (incluye `maxCopias`) |
 
 ---
 
