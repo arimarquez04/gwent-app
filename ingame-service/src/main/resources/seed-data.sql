@@ -78,4 +78,21 @@ INSERT INTO gw_carta_catalogo (nombre, faccion, tipo, fila, fuerza, habilidad, e
 ('Lluvia acida',             'NEUTRAL',         'CLIMA',     NULL,            NULL, 'NINGUNA',               false, 1, NULL, NOW(), NULL, NULL),
 ('Niebla espesa',            'NEUTRAL',         'CLIMA',     NULL,            NULL, 'NINGUNA',               false, 1, NULL, NOW(), NULL, NULL),
 ('Toque de Axii',            'NEUTRAL',         'ESPECIAL',  NULL,            NULL, 'ESCUDO_IMPENETRABLE',   false, 1, NULL, NOW(), NULL, NULL),
-('Buen clima',               'NEUTRAL',         'ESPECIAL',  NULL,            NULL, 'NINGUNA',               false, 1, NULL, NOW(), NULL, NULL);
+('Buen clima',               'NEUTRAL',         'ESPECIAL',  NULL,            NULL, 'NINGUNA',               false, 1, NULL, NOW(), NULL, NULL),
+
+-- ===== LIDERES (tipo=LIDER, fila=NULL, fuerza=NULL, es_heroe=true, max_copias=1) =====
+-- REINO_DEL_NORTE
+('Foltest: Rey de Temeria',               'REINO_DEL_NORTE', 'LIDER', NULL, NULL, 'NINGUNA', true, 1, NULL, NOW(), NULL, NULL),
+('Foltest: Senor Comandante del Norte',   'REINO_DEL_NORTE', 'LIDER', NULL, NULL, 'NINGUNA', true, 1, NULL, NOW(), NULL, NULL),
+-- NILFGAARD
+('Emhyr: El Blanco Llama',               'NILFGAARD',       'LIDER', NULL, NULL, 'NINGUNA', true, 1, NULL, NOW(), NULL, NULL),
+('Emhyr: Senor de las Aguas',            'NILFGAARD',       'LIDER', NULL, NULL, 'NINGUNA', true, 1, NULL, NOW(), NULL, NULL),
+-- MONSTRUOS
+('Eredin: Rey de la Caceria',            'MONSTRUOS',       'LIDER', NULL, NULL, 'NINGUNA', true, 1, NULL, NOW(), NULL, NULL),
+('Eredin: Rompenieblas',                 'MONSTRUOS',       'LIDER', NULL, NULL, 'NINGUNA', true, 1, NULL, NOW(), NULL, NULL),
+-- SCOIA_TAEL
+('Francesca: La Mas Hermosa',            'SCOIA_TAEL',      'LIDER', NULL, NULL, 'NINGUNA', true, 1, NULL, NOW(), NULL, NULL),
+('Francesca: Enid an Gleanna',           'SCOIA_TAEL',      'LIDER', NULL, NULL, 'NINGUNA', true, 1, NULL, NOW(), NULL, NULL),
+-- SKELLIGE
+('Crach an Craite: Senor de Ard Skellig','SKELLIGE',        'LIDER', NULL, NULL, 'NINGUNA', true, 1, NULL, NOW(), NULL, NULL),
+('Birna Bran',                           'SKELLIGE',        'LIDER', NULL, NULL, 'NINGUNA', true, 1, NULL, NOW(), NULL, NULL);

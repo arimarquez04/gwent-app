@@ -16,7 +16,11 @@
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": "{{baseUrl}}/api/v1/auth/register",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "register"]
+            },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"password123\",\n  \"email\": \"test@example.com\",\n  \"gameId\": \"testgame\",\n  \"tag\": \"1234\"\n}"
@@ -41,7 +45,11 @@
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": "{{baseUrl}}/api/v1/auth/login",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"identifier\": \"testuser\",\n  \"password\": \"password123\"\n}"
@@ -53,7 +61,11 @@
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": "{{baseUrl}}/api/v1/auth/login",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"identifier\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
@@ -65,7 +77,11 @@
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": "{{baseUrl}}/api/v1/auth/login",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"identifier\": \"testgame#1234\",\n  \"password\": \"password123\"\n}"
@@ -77,7 +93,11 @@
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": "{{baseUrl}}/api/v1/auth/login",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"identifier\": \"testuser\",\n  \"password\": \"wrongpassword\"\n}"
@@ -92,7 +112,11 @@
               { "key": "Content-Type", "value": "application/json" },
               { "key": "Authorization", "value": "Bearer {{token}}" }
             ],
-            "url": "{{baseUrl}}/api/v1/auth/password",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "password"]
+            },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"currentPassword\": \"password123\",\n  \"newPassword\": \"newpassword456\"\n}"
@@ -107,7 +131,11 @@
               { "key": "Content-Type", "value": "application/json" },
               { "key": "Authorization", "value": "Bearer {{token}}" }
             ],
-            "url": "{{baseUrl}}/api/v1/auth/password",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "password"]
+            },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"currentPassword\": \"wrong\",\n  \"newPassword\": \"newpassword456\"\n}"
@@ -124,7 +152,11 @@
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": "{{baseUrl}}/api/players/me"
+            "url": {
+              "raw": "{{baseUrl}}/api/players/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "players", "me"]
+            }
           }
         },
         {
@@ -135,7 +167,11 @@
               { "key": "Content-Type", "value": "application/json" },
               { "key": "Authorization", "value": "Bearer {{token}}" }
             ],
-            "url": "{{baseUrl}}/api/players/me",
+            "url": {
+              "raw": "{{baseUrl}}/api/players/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "players", "me"]
+            },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"apodo\": \"NuevoApodo\"\n}"
@@ -150,7 +186,11 @@
               { "key": "Content-Type", "value": "application/json" },
               { "key": "Authorization", "value": "Bearer {{token}}" }
             ],
-            "url": "{{baseUrl}}/api/players/me",
+            "url": {
+              "raw": "{{baseUrl}}/api/players/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "players", "me"]
+            },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"avatarUrl\": \"https://example.com/avatar.png\"\n}"
@@ -165,7 +205,11 @@
               { "key": "Content-Type", "value": "application/json" },
               { "key": "Authorization", "value": "Bearer {{token}}" }
             ],
-            "url": "{{baseUrl}}/api/players/me",
+            "url": {
+              "raw": "{{baseUrl}}/api/players/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "players", "me"]
+            },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"apodo\": \"OtroApodo\",\n  \"avatarUrl\": \"https://example.com/avatar2.png\"\n}"
@@ -177,7 +221,11 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/api/players/me"
+            "url": {
+              "raw": "{{baseUrl}}/api/players/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "players", "me"]
+            }
           }
         }
       ]
@@ -190,7 +238,11 @@
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": "{{baseUrl}}/api/v1/cards"
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards"]
+            }
           }
         },
         {
@@ -198,7 +250,11 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/api/v1/cards"
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards"]
+            }
           }
         }
       ]
@@ -213,6 +269,8 @@
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/v1/cards?faccion=REINO_DEL_NORTE",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards"],
               "query": [{ "key": "faccion", "value": "REINO_DEL_NORTE" }]
             }
           }
@@ -224,6 +282,8 @@
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/v1/cards?faccion=NILFGAARD",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards"],
               "query": [{ "key": "faccion", "value": "NILFGAARD" }]
             }
           }
@@ -235,6 +295,8 @@
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/v1/cards?faccion=MONSTRUOS",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards"],
               "query": [{ "key": "faccion", "value": "MONSTRUOS" }]
             }
           }
@@ -246,6 +308,8 @@
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/v1/cards?faccion=SCOIA_TAEL",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards"],
               "query": [{ "key": "faccion", "value": "SCOIA_TAEL" }]
             }
           }
@@ -257,6 +321,8 @@
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/v1/cards?faccion=SKELLIGE",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards"],
               "query": [{ "key": "faccion", "value": "SKELLIGE" }]
             }
           }
@@ -268,6 +334,8 @@
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/v1/cards?faccion=NEUTRAL",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards"],
               "query": [{ "key": "faccion", "value": "NEUTRAL" }]
             }
           }
@@ -279,6 +347,8 @@
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/v1/cards?faccion=INVALIDA",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards"],
               "query": [{ "key": "faccion", "value": "INVALIDA" }]
             }
           }
@@ -295,6 +365,8 @@
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/v1/cards?fila=CUERPO_A_CUERPO",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards"],
               "query": [{ "key": "fila", "value": "CUERPO_A_CUERPO" }]
             }
           }
@@ -306,6 +378,8 @@
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/v1/cards?fila=DISTANCIA",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards"],
               "query": [{ "key": "fila", "value": "DISTANCIA" }]
             }
           }
@@ -317,6 +391,8 @@
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/v1/cards?fila=ASEDIO",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards"],
               "query": [{ "key": "fila", "value": "ASEDIO" }]
             }
           }
@@ -328,6 +404,8 @@
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/v1/cards?fila=AGIL",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards"],
               "query": [{ "key": "fila", "value": "AGIL" }]
             }
           }
@@ -344,6 +422,8 @@
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/v1/cards?tipo=UNIDAD",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards"],
               "query": [{ "key": "tipo", "value": "UNIDAD" }]
             }
           }
@@ -355,6 +435,8 @@
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/v1/cards?tipo=CLIMA",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards"],
               "query": [{ "key": "tipo", "value": "CLIMA" }]
             }
           }
@@ -366,6 +448,8 @@
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/v1/cards?tipo=ESPECIAL",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards"],
               "query": [{ "key": "tipo", "value": "ESPECIAL" }]
             }
           }
@@ -377,6 +461,8 @@
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/v1/cards?esEspecial=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards"],
               "query": [{ "key": "esEspecial", "value": "true" }]
             }
           }
@@ -393,6 +479,8 @@
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/v1/cards?esHeroe=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards"],
               "query": [{ "key": "esHeroe", "value": "true" }]
             }
           }
@@ -404,6 +492,8 @@
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/v1/cards?esHeroe=false",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards"],
               "query": [{ "key": "esHeroe", "value": "false" }]
             }
           }
@@ -415,6 +505,8 @@
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/v1/cards?habilidad=MEDICO",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards"],
               "query": [{ "key": "habilidad", "value": "MEDICO" }]
             }
           }
@@ -426,6 +518,8 @@
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/v1/cards?habilidad=ESPIA",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards"],
               "query": [{ "key": "habilidad", "value": "ESPIA" }]
             }
           }
@@ -437,6 +531,8 @@
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/v1/cards?habilidad=ENLACE_APRETADO",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards"],
               "query": [{ "key": "habilidad", "value": "ENLACE_APRETADO" }]
             }
           }
@@ -448,6 +544,8 @@
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/v1/cards?habilidad=MUSTER",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards"],
               "query": [{ "key": "habilidad", "value": "MUSTER" }]
             }
           }
@@ -459,6 +557,8 @@
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/v1/cards?habilidad=DECOY",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards"],
               "query": [{ "key": "habilidad", "value": "DECOY" }]
             }
           }
@@ -470,6 +570,8 @@
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/v1/cards?habilidad=REFUERZO_MORAL",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards"],
               "query": [{ "key": "habilidad", "value": "REFUERZO_MORAL" }]
             }
           }
@@ -486,6 +588,8 @@
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/v1/cards?faccion=REINO_DEL_NORTE&fila=CUERPO_A_CUERPO",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards"],
               "query": [
                 { "key": "faccion", "value": "REINO_DEL_NORTE" },
                 { "key": "fila",    "value": "CUERPO_A_CUERPO" }
@@ -500,6 +604,8 @@
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/v1/cards?faccion=NILFGAARD&esHeroe=false",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards"],
               "query": [
                 { "key": "faccion",  "value": "NILFGAARD" },
                 { "key": "esHeroe", "value": "false" }
@@ -514,6 +620,8 @@
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/v1/cards?faccion=NEUTRAL&esEspecial=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards"],
               "query": [
                 { "key": "faccion",    "value": "NEUTRAL" },
                 { "key": "esEspecial", "value": "true" }
@@ -528,6 +636,8 @@
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/v1/cards?esHeroe=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards"],
               "query": [{ "key": "esHeroe", "value": "true" }]
             }
           }
@@ -539,6 +649,8 @@
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/v1/cards?habilidad=MEDICO&esHeroe=false",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards"],
               "query": [
                 { "key": "habilidad", "value": "MEDICO" },
                 { "key": "esHeroe",   "value": "false" }
@@ -553,6 +665,8 @@
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/v1/cards?faccion=MONSTRUOS&fila=CUERPO_A_CUERPO",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards"],
               "query": [
                 { "key": "faccion", "value": "MONSTRUOS" },
                 { "key": "fila",    "value": "CUERPO_A_CUERPO" }
@@ -567,6 +681,8 @@
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/v1/cards?habilidad=ENLACE_APRETADO&fila=DISTANCIA",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards"],
               "query": [
                 { "key": "habilidad", "value": "ENLACE_APRETADO" },
                 { "key": "fila",      "value": "DISTANCIA" }
@@ -581,11 +697,66 @@
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/v1/cards?faccion=SKELLIGE&fila=CUERPO_A_CUERPO&esHeroe=false",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards"],
               "query": [
                 { "key": "faccion",  "value": "SKELLIGE" },
                 { "key": "fila",     "value": "CUERPO_A_CUERPO" },
                 { "key": "esHeroe", "value": "false" }
               ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Cartas — por ID",
+      "item": [
+        {
+          "name": "Carta ID 1",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards", "1"]
+            }
+          }
+        },
+        {
+          "name": "Carta ID 5",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards/5",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards", "5"]
+            }
+          }
+        },
+        {
+          "name": "Carta ID 10",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards/10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards", "10"]
+            }
+          }
+        },
+        {
+          "name": "Carta inexistente → 404",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cards/9999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cards", "9999"]
             }
           }
         }
@@ -602,7 +773,11 @@
               { "key": "Content-Type", "value": "application/json" },
               { "key": "Authorization", "value": "Bearer {{token}}" }
             ],
-            "url": "{{baseUrl}}/api/v1/players/me/cards",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/players/me/cards",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "players", "me", "cards"]
+            },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"cardIds\": [1, 2, 3]\n}"
@@ -617,7 +792,11 @@
               { "key": "Content-Type", "value": "application/json" },
               { "key": "Authorization", "value": "Bearer {{token}}" }
             ],
-            "url": "{{baseUrl}}/api/v1/players/me/cards",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/players/me/cards",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "players", "me", "cards"]
+            },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"cardIds\": [3]\n}"
@@ -632,7 +811,11 @@
               { "key": "Content-Type", "value": "application/json" },
               { "key": "Authorization", "value": "Bearer {{token}}" }
             ],
-            "url": "{{baseUrl}}/api/v1/players/me/cards",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/players/me/cards",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "players", "me", "cards"]
+            },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"cardIds\": [1]\n}"
@@ -647,7 +830,11 @@
               { "key": "Content-Type", "value": "application/json" },
               { "key": "Authorization", "value": "Bearer {{token}}" }
             ],
-            "url": "{{baseUrl}}/api/v1/players/me/cards",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/players/me/cards",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "players", "me", "cards"]
+            },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"cardIds\": [9999]\n}"
@@ -659,7 +846,11 @@
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": "{{baseUrl}}/api/v1/players/me/cards"
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/players/me/cards",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "players", "me", "cards"]
+            }
           }
         },
         {
@@ -667,44 +858,290 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/api/v1/players/me/cards"
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/players/me/cards",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "players", "me", "cards"]
+            }
           }
         }
       ]
     },
     {
-      "name": "2. Cartas — por ID",
+      "name": "4. Mazos",
       "item": [
         {
-          "name": "Carta ID 1",
+          "name": "Crear mazo (sin lider ni cartas)",
           "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": "{{baseUrl}}/api/v1/cards/1"
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/players/me/mazos",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "players", "me", "mazos"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Mi primer mazo RDN\",\n  \"faccion\": \"REINO_DEL_NORTE\"\n}"
+            }
           }
         },
         {
-          "name": "Carta ID 5",
+          "name": "Crear mazo (con lider y cartas)",
           "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": "{{baseUrl}}/api/v1/cards/5"
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/players/me/mazos",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "players", "me", "mazos"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Mazo RDN con lider\",\n  \"faccion\": \"REINO_DEL_NORTE\",\n  \"liderId\": 32,\n  \"cardEntries\": [\n    { \"cartaCatalogoId\": 5, \"cantidad\": 1 },\n    { \"cartaCatalogoId\": 6, \"cantidad\": 3 },\n    { \"cartaCatalogoId\": 7, \"cantidad\": 3 },\n    { \"cartaCatalogoId\": 8, \"cantidad\": 3 }\n  ]\n}"
+            }
           }
         },
         {
-          "name": "Carta ID 10",
+          "name": "Crear mazo (limite 3 por faccion → 409)",
           "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": "{{baseUrl}}/api/v1/cards/10"
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/players/me/mazos",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "players", "me", "mazos"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Cuarto mazo RDN — deberia fallar\",\n  \"faccion\": \"REINO_DEL_NORTE\"\n}"
+            }
           }
         },
         {
-          "name": "Carta inexistente → 404",
+          "name": "Crear mazo (carta de otra faccion → 422)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/players/me/mazos",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "players", "me", "mazos"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Mazo con carta invalida\",\n  \"faccion\": \"REINO_DEL_NORTE\",\n  \"cardEntries\": [\n    { \"cartaCatalogoId\": 10, \"cantidad\": 1 }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Crear mazo (lider de faccion incorrecta → 422)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/players/me/mazos",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "players", "me", "mazos"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Mazo con lider incorrecto\",\n  \"faccion\": \"REINO_DEL_NORTE\",\n  \"liderId\": 34\n}"
+            }
+          }
+        },
+        {
+          "name": "Crear mazo (lider como carta → 422)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/players/me/mazos",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "players", "me", "mazos"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Mazo con lider en cartas\",\n  \"faccion\": \"REINO_DEL_NORTE\",\n  \"cardEntries\": [\n    { \"cartaCatalogoId\": 32, \"cantidad\": 1 }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Listar mis mazos",
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": "{{baseUrl}}/api/v1/cards/9999"
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/players/me/mazos",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "players", "me", "mazos"]
+            }
+          }
+        },
+        {
+          "name": "Obtener mazo por ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/players/me/mazos/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "players", "me", "mazos", "1"]
+            }
+          }
+        },
+        {
+          "name": "Obtener mazo inexistente → 404",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/players/me/mazos/9999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "players", "me", "mazos", "9999"]
+            }
+          }
+        },
+        {
+          "name": "Editar mazo (cambiar nombre)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/players/me/mazos/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "players", "me", "mazos", "1"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Mazo RDN v2\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Editar mazo (cambiar lider)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/players/me/mazos/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "players", "me", "mazos", "1"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"liderId\": 33\n}"
+            }
+          }
+        },
+        {
+          "name": "Editar mazo (quitar lider)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/players/me/mazos/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "players", "me", "mazos", "1"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"liderId\": -1\n}"
+            }
+          }
+        },
+        {
+          "name": "Editar mazo (reemplazar cartas)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/players/me/mazos/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "players", "me", "mazos", "1"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cardEntries\": [\n    { \"cartaCatalogoId\": 5, \"cantidad\": 1 },\n    { \"cartaCatalogoId\": 6, \"cantidad\": 3 },\n    { \"cartaCatalogoId\": 7, \"cantidad\": 3 },\n    { \"cartaCatalogoId\": 8, \"cantidad\": 3 },\n    { \"cartaCatalogoId\": 9, \"cantidad\": 3 },\n    { \"cartaCatalogoId\": 25, \"cantidad\": 1 },\n    { \"cartaCatalogoId\": 26, \"cantidad\": 1 }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Activar mazo (menos de 22 unidades → 422)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/players/me/mazos/1/activate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "players", "me", "mazos", "1", "activate"]
+            }
+          }
+        },
+        {
+          "name": "Activar mazo (con 22+ unidades → 200, estado ACTIVO)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/players/me/mazos/2/activate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "players", "me", "mazos", "2", "activate"]
+            }
+          }
+        },
+        {
+          "name": "Eliminar mazo → 204",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/players/me/mazos/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "players", "me", "mazos", "1"]
+            }
+          }
+        },
+        {
+          "name": "Sin token → 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/players/me/mazos",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "players", "me", "mazos"]
+            }
           }
         }
       ]

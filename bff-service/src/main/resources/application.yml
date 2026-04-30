@@ -40,6 +40,7 @@ gwent:
       base-url: "http://localhost:8083"
       cards-url: "/ingame/v1/cards"
       player-cards-url: "/ingame/v1/players/me/cards"
+      mazos-url: "/ingame/v1/players/me/mazos"
     auth:
       name: "auth-service"
       v1-version: "/v1"

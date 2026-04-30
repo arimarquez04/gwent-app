@@ -268,10 +268,6 @@ sequenceDiagram
 
 ---
 
-## 8. Flujo de errores entre servicios
-
-**Contexto:** Cómo un error en un microservicio interno llega al cliente.
-
 ## 8. Desbloquear múltiples cartas
 
 **Acción:** El jugador desbloquea una o más cartas del catálogo en una sola llamada.
@@ -314,7 +310,101 @@ sequenceDiagram
 
 ---
 
-## 9. Flujo de errores entre servicios
+## 9. Crear mazo
+
+**Acción:** El jugador crea un nuevo mazo para una facción.
+
+```
+POST /api/v1/players/me/mazos
+Authorization: Bearer <token>
+Body: { "nombre", "faccion", "liderId"?, "cardEntries"? }
+```
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Cliente
+    participant BFF as BFF :8080
+    participant IS as ingame-service :8083
+    participant DB as MySQL
+
+    C->>BFF: POST /api/v1/players/me/mazos
+    BFF->>BFF: Valida JWT
+    BFF->>IS: POST /ingame/v1/players/me/mazos (Bearer propagado)
+    IS->>IS: Valida JWT → extrae userId
+
+    IS->>DB: countByJugadorIdAndFaccion
+    alt >= 3 mazos
+        IS-->>BFF: 409 Deck limit reached
+        BFF-->>C: 409
+    else OK
+        IS->>DB: SELECT cartas pedidas (validación facción + desbloqueadas)
+        alt Carta inválida
+            IS-->>BFF: 422 (facción incorrecta / no desbloqueada / líder en cartas)
+            BFF-->>C: 422
+        else OK
+            IS->>DB: INSERT gw_mazo (estado=INACTIVO)
+            IS->>DB: INSERT gw_mazo_carta (por cada carta)
+            DB-->>IS: ok
+            IS-->>BFF: GenericResponseDTO { MazoDTO }
+            BFF-->>C: 201 GenericResponseDTO { MazoDTO }
+        end
+    end
+```
+
+**Errores posibles:**
+- `409 Conflict` — ya existen 3 mazos de esa facción
+- `422 Unprocessable Entity` — carta de otra facción / no desbloqueada / líder en cardEntries
+
+---
+
+## 10. Activar mazo
+
+**Acción:** El jugador activa un mazo como el mazo activo de su facción.
+
+```
+PATCH /api/v1/players/me/mazos/{id}/activate
+Authorization: Bearer <token>
+```
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Cliente
+    participant BFF as BFF :8080
+    participant IS as ingame-service :8083
+    participant DB as MySQL
+
+    C->>BFF: PATCH /api/v1/players/me/mazos/{id}/activate
+    BFF->>BFF: Valida JWT
+    BFF->>IS: PATCH /ingame/v1/players/me/mazos/{id}/activate (Bearer propagado)
+    IS->>IS: Valida JWT → extrae userId
+    IS->>DB: SELECT gw_mazo WHERE id=? AND jugadorId=?
+    alt No existe o no pertenece al jugador
+        IS-->>BFF: 404
+        BFF-->>C: 404
+    else Encontrado
+        IS->>IS: Cuenta unidades (suma cantidad donde tipo=UNIDAD)
+        alt < 22 unidades
+            IS-->>BFF: 422 Deck needs at least 22 unit cards
+            BFF-->>C: 422
+        else >= 22 unidades
+            IS->>DB: UPDATE mazo activo anterior → INACTIVO (si existe)
+            IS->>DB: UPDATE este mazo → ACTIVO
+            DB-->>IS: ok
+            IS-->>BFF: GenericResponseDTO { MazoDTO (estado=ACTIVO) }
+            BFF-->>C: 200 GenericResponseDTO { MazoDTO }
+        end
+    end
+```
+
+**Errores posibles:**
+- `404 Not Found` — mazo no existe o no pertenece al jugador
+- `422 Unprocessable Entity` — menos de 22 cartas de tipo UNIDAD
+
+---
+
+## 11. Flujo de errores entre servicios
 
 ```mermaid
 sequenceDiagram
@@ -336,4 +426,207 @@ sequenceDiagram
     BFF->>GEH: Lanza excepción
     GEH-->>BFF: Propaga el ErrorDTO original con el mismo HTTP status
     BFF-->>C: HTTP 4xx + ErrorDTO { serviceOrigin, status, message }
+```
+
+---
+
+## 12. Crear partida
+
+**Acción:** Se crea una partida entre dos jugadores con mazos activos. Se reparten 10 cartas aleatorias a cada uno.
+
+```
+POST /ingame/v1/partidas
+Authorization: Bearer <token>
+Body: { "oponenteId": "uuid", "mazoId": 5, "mazoOponenteId": 8 }
+```
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Cliente
+    participant IS as ingame-service :8083
+    participant DB as MySQL
+
+    C->>IS: POST /ingame/v1/partidas
+    IS->>IS: Valida JWT → extrae userId (jugadorUno)
+
+    IS->>DB: SELECT gw_mazo WHERE id=mazoId
+    alt Mazo no pertenece al jugador o no ACTIVO
+        IS-->>C: 404 / 422
+    else OK
+        IS->>DB: SELECT gw_mazo WHERE id=mazoOponenteId
+        alt Mazo no pertenece al oponente o no ACTIVO
+            IS-->>C: 404 / 422
+        else OK
+            IS->>DB: INSERT gw_partida (estado=MULLIGAN, vidas=2/2, turno=aleatorio)
+            IS->>IS: Para cada jugador: expandir MazoCarta (cantidad→N instancias)<br/>Shuffle, primeras 10 → MANO, resto → MAZO
+            IS->>DB: INSERT gw_carta_partida (N registros por jugador)
+            DB-->>IS: ok
+            IS-->>C: 201 GenericResponseDTO { PartidaDTO }
+        end
+    end
+```
+
+---
+
+## 13. Mulligan
+
+**Acción:** Cada jugador intercambia 0 a 2 cartas de su mano por cartas aleatorias del mazo. Cuando ambos completan el mulligan, la partida pasa a EN_CURSO.
+
+```
+POST /ingame/v1/partidas/{id}/mulligan
+Authorization: Bearer <token>
+Body: { "cartaPartidaIds": [101, 105] }
+```
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Cliente
+    participant IS as ingame-service :8083
+    participant DB as MySQL
+
+    C->>IS: POST /ingame/v1/partidas/{id}/mulligan
+    IS->>IS: Valida JWT → extrae userId
+    IS->>DB: SELECT gw_partida WHERE id=?
+
+    alt estado ≠ MULLIGAN
+        IS-->>C: 409 Match is not in mulligan phase
+    else Mulligan ya completado por este jugador
+        IS-->>C: 409 Mulligan already completed
+    else OK
+        IS->>IS: Valida cartaPartidaIds.size() ≤ 2
+        loop Por cada carta a intercambiar
+            IS->>IS: Carta de MANO → MAZO
+            IS->>IS: Carta aleatoria de MAZO → MANO
+        end
+        IS->>DB: UPDATE gw_carta_partida (zonas)
+        IS->>DB: UPDATE gw_partida (jugadorXMulligan=true)
+
+        alt Ambos completaron mulligan
+            IS->>DB: UPDATE gw_partida (estado=EN_CURSO, rondaActual=1)
+        end
+        IS-->>C: 200 GenericResponseDTO { PartidaDTO }
+    end
+```
+
+---
+
+## 14. Jugar carta
+
+**Acción:** El jugador con turno juega una carta UNIDAD de su mano en una fila del campo.
+
+```
+POST /ingame/v1/partidas/{id}/jugar-carta
+Authorization: Bearer <token>
+Body: { "cartaPartidaId": 101, "fila": "CUERPO_A_CUERPO" }
+```
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Cliente
+    participant IS as ingame-service :8083
+    participant DB as MySQL
+
+    C->>IS: POST /ingame/v1/partidas/{id}/jugar-carta
+    IS->>IS: Valida JWT → extrae userId
+    IS->>DB: SELECT gw_partida
+
+    alt estado ≠ EN_CURSO
+        IS-->>C: 409 Match is not in progress
+    else No es su turno
+        IS-->>C: 409 It is not your turn
+    else Jugador ya pasó
+        IS-->>C: 409 You have already passed
+    else OK
+        IS->>DB: SELECT gw_carta_partida WHERE id=cartaPartidaId
+        alt Carta no en MANO o no UNIDAD
+            IS-->>C: 422
+        else OK
+            IS->>IS: Determinar fila (AGIL → del request, otras → de la carta)
+            IS->>DB: UPDATE gw_carta_partida (zona=CAMPO, filaEnCampo=fila)
+
+            IS->>IS: Cambiar turno (si oponente pasó → mantener turno)
+            IS->>IS: Auto-pass si mano vacía
+
+            alt Ambos pasaron
+                IS->>IS: Resolver ronda (ver diagrama 16)
+            end
+            IS-->>C: 200 GenericResponseDTO { PartidaDTO }
+        end
+    end
+```
+
+---
+
+## 15. Pasar turno
+
+**Acción:** El jugador deja de jugar cartas por el resto de la ronda. Si ambos pasaron, se resuelve la ronda.
+
+```
+POST /ingame/v1/partidas/{id}/pasar
+Authorization: Bearer <token>
+```
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Cliente
+    participant IS as ingame-service :8083
+    participant DB as MySQL
+
+    C->>IS: POST /ingame/v1/partidas/{id}/pasar
+    IS->>IS: Valida JWT → extrae userId
+    IS->>DB: SELECT gw_partida
+
+    alt estado ≠ EN_CURSO o no es su turno
+        IS-->>C: 409
+    else Ya pasó
+        IS-->>C: 409 You have already passed
+    else OK
+        IS->>DB: UPDATE gw_partida (jugadorXPaso=true)
+
+        alt Oponente también pasó
+            IS->>IS: Resolver ronda (ver diagrama 16)
+        else Oponente no pasó
+            IS->>DB: UPDATE turnoJugadorId → oponente
+        end
+        IS-->>C: 200 GenericResponseDTO { PartidaDTO }
+    end
+```
+
+---
+
+## 16. Resolución de ronda (interno)
+
+**Contexto:** Se ejecuta automáticamente cuando ambos jugadores han pasado en la ronda actual.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant IS as ingame-service
+    participant DB as MySQL
+
+    IS->>DB: SELECT gw_carta_partida WHERE zona=CAMPO (ambos jugadores)
+    IS->>IS: Sumar fuerza de cartas de cada jugador
+
+    alt J1 > J2
+        IS->>IS: J2 pierde 1 vida
+    else J2 > J1
+        IS->>IS: J1 pierde 1 vida
+    else Empate
+        IS->>IS: Ambos pierden 1 vida
+    end
+
+    IS->>DB: INSERT gw_ronda (puntajes, ganador/empate)
+    IS->>DB: UPDATE gw_carta_partida SET zona=CEMENTERIO (todas las del campo)
+
+    alt Algún jugador con 0 vidas o ronda ≥ 3
+        IS->>DB: UPDATE gw_partida (estado=TERMINADA, ganadorId/empate)
+    else Partida continúa
+        IS->>IS: Robar cartas (2 tras R1, 1 tras R2)
+        IS->>DB: UPDATE gw_carta_partida (MAZO→MANO, aleatorias)
+        IS->>DB: UPDATE gw_partida (rondaActual++, turno=ganador de ronda)
+    end
 ```

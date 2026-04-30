@@ -45,11 +45,11 @@ Spring Boot 3.x microservices (Java 21) with a BFF pattern. All public traffic e
 
 ## gwent-commons Library
 
-All services depend on a shared library (`gwent-commons`, version `0.11.0`) published to local Maven. Key packages:
+All services depend on a shared library (`gwent-commons`, version `0.12.0`) published to local Maven. Key packages:
 
 | Module | Key types |
 |---|---|
-| `gwent-common` | `com.arimar.gwent.common.response.GenericResponseDTO` (used in internal calls) / `com.arimar.gwent.common.utils.response.GenericResponseDTO` (used in BFF controllers — note the different package path) |
+| `gwent-common` | `com.arimar.gwent.common.response.GenericResponseDTO` (the **only** version to use everywhere — controllers and clients) |
 | `gwent-contracts` | `com.arimar.gwent.contracts.auth.request.{LoginRequest, RegisterRequest}`, `com.arimar.gwent.contracts.auth.response.TokenResponse`, `com.arimar.gwent.contracts.auth.claims.JwtClaimNames` |
 | `gwent-security` | `com.arimar.gwent.security.actor.Actor` (fields: userId, gameId, username, tag) |
 | `gwent-communication` | `com.arimar.gwent.communication.invoker.{GenericRestInvoker, ServiceCallResponse}`, `com.arimar.gwent.communication.error.RemoteServiceErrorMapper` |
@@ -86,6 +86,7 @@ Every service must have a `GlobalExceptionHandler` (`@RestControllerAdvice`) tha
 Exception handlers location:
 - `auth-service`: `com.arimar.gwent.authservice.exception.ApiExceptionHandler`
 - `jugador-service`: `com.arimar.gwent.jugadorservice.exception.GlobalExceptionHandler`
+- `ingame-service`: `com.arimar.gwent.ingameservice.exception.GlobalExceptionHandler`
 - `bff-service`: `com.arimar.gwent.bff.exception.GlobalExceptionHandler`
 
 ## Adding New Functionality — Checklist
@@ -120,7 +121,9 @@ Exception handlers location:
 
 ## Known Issues / Gotchas
 
-- `ingame-service` and `solicitud-service` are empty skeletons (only `Application.java`).
+- `solicitud-service` is an empty skeleton (only `Application.java`).
+- `ingame-service` game matches (partidas) are MVP: only `UNIDAD` cards can be played. `CLIMA`/`ESPECIAL` cards are drawn but cannot be played yet. Card abilities and leader abilities are not implemented.
+- The `CreatePartidaRequest` requires both players' deck IDs (temporary for testing). This will be replaced when `solicitud-service` handles challenge acceptance and triggers match creation.
 
 ## OpenAPI / Swagger
 

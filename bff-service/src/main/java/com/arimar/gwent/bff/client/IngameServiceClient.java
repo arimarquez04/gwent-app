@@ -1,9 +1,7 @@
 package com.arimar.gwent.bff.client;
 
 import com.arimar.gwent.bff.client.config.IngameServiceConfig;
-import com.arimar.gwent.bff.dto.ingame.CartaCatalogoDTO;
-import com.arimar.gwent.bff.dto.ingame.CartaJugadorDTO;
-import com.arimar.gwent.bff.dto.ingame.UnlockCardsRequest;
+import com.arimar.gwent.bff.dto.ingame.*;
 import com.arimar.gwent.common.response.GenericResponseDTO;
 import com.arimar.gwent.communication.error.RemoteServiceErrorMapper;
 import com.arimar.gwent.communication.invoker.GenericRestInvoker;
@@ -88,5 +86,66 @@ public class IngameServiceClient {
         );
         if (response.isOk()) return response.ok();
         throw errorMapper.toException(cfg.getName(), url, response.httpStatus(), response.error());
+    }
+
+    public GenericResponseDTO<MazoDTO> createMazo(CreateMazoRequest request) {
+        String url = cfg.getBaseUrl() + cfg.getMazosUrl();
+        ServiceCallResponse<MazoDTO> response = invoker.exchange(
+                HttpMethod.POST, url, request, Map.of(),
+                new ParameterizedTypeReference<>() {}
+        );
+        if (response.isOk()) return response.ok();
+        throw errorMapper.toException(cfg.getName(), url, response.httpStatus(), response.error());
+    }
+
+    public GenericResponseDTO<List<MazoDTO>> getMazos() {
+        String url = cfg.getBaseUrl() + cfg.getMazosUrl();
+        ServiceCallResponse<List<MazoDTO>> response = invoker.exchange(
+                HttpMethod.GET, url, null, Map.of(),
+                new ParameterizedTypeReference<>() {}
+        );
+        if (response.isOk()) return response.ok();
+        throw errorMapper.toException(cfg.getName(), url, response.httpStatus(), response.error());
+    }
+
+    public GenericResponseDTO<MazoDTO> getMazoById(Long id) {
+        String url = cfg.getBaseUrl() + cfg.getMazosUrl() + "/" + id;
+        ServiceCallResponse<MazoDTO> response = invoker.exchange(
+                HttpMethod.GET, url, null, Map.of(),
+                new ParameterizedTypeReference<>() {}
+        );
+        if (response.isOk()) return response.ok();
+        throw errorMapper.toException(cfg.getName(), url, response.httpStatus(), response.error());
+    }
+
+    public GenericResponseDTO<MazoDTO> updateMazo(Long id, UpdateMazoRequest request) {
+        String url = cfg.getBaseUrl() + cfg.getMazosUrl() + "/" + id;
+        ServiceCallResponse<MazoDTO> response = invoker.exchange(
+                HttpMethod.PUT, url, request, Map.of(),
+                new ParameterizedTypeReference<>() {}
+        );
+        if (response.isOk()) return response.ok();
+        throw errorMapper.toException(cfg.getName(), url, response.httpStatus(), response.error());
+    }
+
+    public GenericResponseDTO<MazoDTO> setActiveMazo(Long id) {
+        String url = cfg.getBaseUrl() + cfg.getMazosUrl() + "/" + id + "/activate";
+        ServiceCallResponse<MazoDTO> response = invoker.exchange(
+                HttpMethod.PATCH, url, null, Map.of(),
+                new ParameterizedTypeReference<>() {}
+        );
+        if (response.isOk()) return response.ok();
+        throw errorMapper.toException(cfg.getName(), url, response.httpStatus(), response.error());
+    }
+
+    public void deleteMazo(Long id) {
+        String url = cfg.getBaseUrl() + cfg.getMazosUrl() + "/" + id;
+        ServiceCallResponse<Void> response = invoker.exchange(
+                HttpMethod.DELETE, url, null, Map.of(),
+                new ParameterizedTypeReference<>() {}
+        );
+        if (!response.isOk()) {
+            throw errorMapper.toException(cfg.getName(), url, response.httpStatus(), response.error());
+        }
     }
 }
