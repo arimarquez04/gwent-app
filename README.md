@@ -1,4 +1,4 @@
-# Ms-Gwent
+﻿# Ms-Gwent
 
 Backend para una aplicación de simulación del juego **Gwent (The Witcher 3)**, basado en **microservicios con Spring Boot** y un **BFF (Backend for Frontend)** como único punto de entrada.
 
@@ -19,7 +19,7 @@ Backend para una aplicación de simulación del juego **Gwent (The Witcher 3)**,
 |---|---|---|
 | **bff-service** | 8080 | Funcional — punto de entrada público `/api/**` |
 | **jugador-service** | 8082 | Funcional — perfiles de jugador |
-| **ingame-service** | 8083 | Funcional — catálogo de cartas, desbloqueo, mazos y partidas (MVP) |
+| **ingame-service** | 8083 | Funcional — catálogo de cartas, desbloqueo, mazos, partidas y habilidades de líder |
 | **auth-service** | 8085 | Funcional — autenticación JWT RS256 |
 | **solicitud-service** | — | Esqueleto vacío |
 | **ranking-service** | — | No existe aún |
@@ -214,6 +214,14 @@ Body: { "apodo": "string" }
 ```
 Llamado por el BFF durante el registro. El `userId` se extrae del JWT.
 
+### Endpoint interno: actualizar estadísticas de partida
+```
+POST /api/v1/players/match-result    (jugador-service interno, puerto 8082)
+Authorization: Bearer <token>
+Body: { "jugadorUnoId": "uuid", "jugadorDosId": "uuid", "ganadorId": "uuid|null", "empate": false }
+```
+Llamado por ingame-service al finalizar cada partida (`estado = TERMINADA`). Incrementa `victorias`, `derrotas` o `empates` en `gw_jugador`. Si jugador-service no está disponible, la partida queda guardada correctamente y el error se registra en el log (best-effort).
+
 ---
 
 ### Obtener mi perfil ✅
@@ -263,7 +271,7 @@ Devuelve el catálogo global de cartas. Todos los filtros son opcionales y combi
 | `fila` | enum | `CUERPO_A_CUERPO`, `DISTANCIA`, `ASEDIO`, `AGIL` |
 | `tipo` | enum | `UNIDAD`, `CLIMA`, `ESPECIAL`, `LIDER` |
 | `esHeroe` | boolean | `true` / `false` |
-| `habilidad` | enum | `NINGUNA`, `ESPIA`, `MEDICO`, `ENLACE_APRETADO`, `REFUERZO_MORAL`, `DECOY`, `COMANDANTE_INVOCACION`, `ESCUDO_IMPENETRABLE`, `VÍNCULO_ESTRECHO`, `MUSTER` |
+| `habilidad` | enum | `NINGUNA`, `ESPIA`, `MEDICO`, `ENLACE_APRETADO`, `REFUERZO_MORAL`, `DECOY`, `VINCULO_ESTRECHO`, `MUSTER`, `CLIMA_LIMPIO`, `SCORCH`, `SCORCH_FILA`, `BERSERKER`, `MARDROEME`, `CUERNO_DEL_COMANDANTE`, `TORMENTA_SKELLIGE`, y 18 valores `LIDER_*` (ver AbilityRules.md) |
 | `esEspecial` | boolean | `true` → retorna tipo `CLIMA` + `ESPECIAL`. Tiene precedencia sobre `tipo`. |
 
 ### Obtener carta por ID ✅
@@ -281,9 +289,10 @@ Devuelve una carta específica del catálogo.
 | `faccion` | Enum | `REINO_DEL_NORTE`, `NILFGAARD`, `MONSTRUOS`, `SCOIA_TAEL`, `SKELLIGE`, `NEUTRAL` |
 | `tipo` | Enum | `UNIDAD`, `CLIMA`, `ESPECIAL`, `LIDER` |
 | `fila` | Enum (nullable) | `CUERPO_A_CUERPO`, `DISTANCIA`, `ASEDIO`, `AGIL` |
-| `fuerza` | Integer (nullable) | Fuerza de la unidad |
-| `habilidad` | Enum | `NINGUNA`, `ESPIA`, `MEDICO`, `ENLACE_APRETADO`, `REFUERZO_MORAL`, `DECOY`, `COMANDANTE_INVOCACION`, `ESCUDO_IMPENETRABLE`, `VÍNCULO_ESTRECHO`, `MUSTER` |
-| `esHeroe` | boolean | Las cartas héroe no se ven afectadas por efectos de clima |
+| `fuerza` | Integer (nullable) | Fuerza base de la unidad |
+| `fuerzaTransformada` | Integer (nullable) | Fuerza del Berserker transformado (null para las demas cartas) |
+| `habilidad` | enum | `NINGUNA`, `ESPIA`, `MEDICO`, `ENLACE_APRETADO`, `REFUERZO_MORAL`, `DECOY`, `VINCULO_ESTRECHO`, `MUSTER`, `CLIMA_LIMPIO`, `SCORCH`, `SCORCH_FILA`, `BERSERKER`, `MARDROEME`, `CUERNO_DEL_COMANDANTE`, `TORMENTA_SKELLIGE`, y 18 valores `LIDER_*` (ver AbilityRules.md) |
+| `esHeroe` | boolean | Héroes inmunes a todos los efectos externos: clima, Horn, MORAL, Scorch |
 | `imagenUrl` | String (nullable) | URL de la imagen |
 | `createdAt` | LocalDateTime | Timestamp de creación |
 | `modifiedAt` | LocalDateTime (nullable) | Última modificación |
@@ -392,10 +401,12 @@ Responde `204 No Content`. Las `MazoCarta` se eliminan en cascada.
 
 ### Cartas líder
 
-Hay 2 líderes por facción (10 en total). Son cartas del catálogo con `tipo=LIDER`, sin fila ni fuerza, `esHeroe=true`, `maxCopias=1`. Se asignan al mazo por `liderId` (ID de `gw_carta_catalogo`). El jugador debe haberlas desbloqueado previamente.
+Hay 18 líderes en total (4 por facción para REINO_DEL_NORTE, NILFGAARD, MONSTRUOS y SCOIA_TAEL; 2 para SKELLIGE). Son cartas del catálogo con `tipo=LIDER`, sin fila ni fuerza, `esHeroe=true`, `maxCopias=1`. Se asignan al mazo por `liderId` (ID de `gw_carta_catalogo`). El jugador debe haberlos desbloqueado previamente.
+
+Cada líder tiene una habilidad `LIDER_*` única que puede activarse **una vez por partida** durante el propio turno (consume turno). Ver [AbilityRules.md](AbilityRules.md#habilidades-de-líder) para el detalle completo de cada habilidad.
 
 ### Datos de seed (`seed-data.sql`)
-Incluye 31 cartas normales y 10 líderes. Ejecutar manualmente en MySQL antes de usar.
+Incluye 41 cartas normales y 18 líderes. Incluye ALTER TABLE para columnas nuevas. Ejecutar manualmente en MySQL antes de usar.
 
 ---
 
@@ -415,11 +426,11 @@ POST /api/challenges/{id}/cancel           → Cancelar desafío
 
 ---
 
-## 6. Partidas ✅ (MVP)
+## 6. Partidas ✅
 
 Lógica de partidas implementada en `ingame-service`. Dos jugadores se enfrentan con mazos activos en formato **best-of-3** rondas. Cada jugador empieza con **2 vidas** y pierde 1 al perder o empatar una ronda.
 
-> **MVP:** Solo cartas de tipo `UNIDAD` son jugables. Habilidades de cartas, efectos de clima/especiales y habilidades de líder no están implementados aún.
+> **Alcance actual:** Cartas `UNIDAD`, `CLIMA` y `ESPECIAL` son jugables. Habilidades activas: ESPIA, MEDICO, MUSTER, DECOY, CLIMA_LIMPIO, SCORCH, SCORCH_FILA, BERSERKER, MARDROEME. Habilidades pasivas: ENLACE_APRETADO, VINCULO_ESTRECHO, REFUERZO_MORAL, CUERNO_DEL_COMANDANTE. Clima: Tormenta de escarcha, Lluvia ácida, Niebla espesa, Tormenta de Skellige (doble fila). Habilidades de líder: 18 implementadas (ver [AbilityRules.md](AbilityRules.md#habilidades-de-líder)). Los héroes son inmunes a clima, Horn, MORAL y Scorch.
 
 ### Endpoints internos (`ingame-service :8083`)
 
@@ -430,12 +441,14 @@ Lógica de partidas implementada en `ingame-service`. Dos jugadores se enfrentan
 | `POST` | `/ingame/v1/partidas/{id}/mulligan` | Fase de mulligan (intercambiar 0-2 cartas) |
 | `POST` | `/ingame/v1/partidas/{id}/jugar-carta` | Jugar carta en una fila |
 | `POST` | `/ingame/v1/partidas/{id}/pasar` | Pasar turno (definitivo para la ronda) |
+| `POST` | `/ingame/v1/partidas/{id}/usar-lider` | Activar habilidad del líder (una vez por partida) |
 
 ### Flujo del juego
 
 ```
-CREAR PARTIDA → Repartir 10 cartas → MULLIGAN → EN_CURSO (Ronda 1)
-  → Jugar carta / Pasar → Ambos pasan → Resolver ronda
+CREAR PARTIDA → Repartir 10 cartas → [Auto: LIDER_CANCEL_LEADER si aplica]
+  → MULLIGAN → [Auto: LIDER_DRAW_EXTRA si aplica] → EN_CURSO (Ronda 1)
+  → Jugar carta / Usar líder / Pasar → Ambos pasan → Resolver ronda
   → ¿Fin? → TERMINADA  |  → Robar cartas → Siguiente ronda
 ```
 
@@ -461,9 +474,27 @@ Cada jugador puede intercambiar **0 a 2** cartas de su mano por cartas aleatoria
 ```
 POST /ingame/v1/partidas/{id}/jugar-carta
 Authorization: Bearer <token>
-Body: { "cartaPartidaId": 101, "fila": "CUERPO_A_CUERPO" }
+Body: {
+  "cartaPartidaId": 101,
+  "fila": "CUERPO_A_CUERPO",      ← requerido para cartas AGIL
+  "reviveCartaId": 55,             ← solo MEDICO: carta del cementerio a revivir
+  "reviveFila": "DISTANCIA",       ← solo si la carta a revivir es AGIL
+  "targetCartaId": 72              ← solo DECOY: unidad en campo a devolver a la mano
+}
 ```
-Solo el jugador con turno puede jugar. Solo cartas `UNIDAD`. La fila se determina automáticamente según la carta, excepto cartas `AGIL` que requieren `fila` en el request (`CUERPO_A_CUERPO` o `DISTANCIA`). Si el oponente ya pasó, el jugador mantiene el turno. Auto-pass si la mano queda vacía.
+Solo el jugador con turno puede jugar. Cartas `UNIDAD`, `CLIMA` y `ESPECIAL` son jugables. La fila se determina automáticamente según la carta; cartas `AGIL` requieren `fila` en el request. Cartas de slot lateral (Cuerno del Comandante y Mardroeme ESPECIAL) requieren `fila`. Si el oponente ya pasó, el jugador mantiene el turno. Auto-pass si la mano queda vacía.
+
+**Efectos de habilidades al jugar:**
+- `ESPIA` — la carta va al campo del oponente; el jugador roba 2 cartas del mazo
+- `MEDICO` — si se envía `reviveCartaId`, esa unidad no-héroe del cementerio pasa al campo; `reviveFila` requerido si la carta a revivir es AGIL
+- `MUSTER` — todas las copias del mismo tipo en el mazo pasan automáticamente al campo
+- `DECOY` — la unidad `targetCartaId` del campo regresa a la mano; DECOY ocupa su fila
+- `CLIMA_LIMPIO` — elimina todas las cartas CLIMA del campo (ambos jugadores) y se descarta
+- `SCORCH` (ESPECIAL) — destruye la(s) unidad(es) con mayor fuerza de ambos campos si total ≥ 10, luego se descarta
+- `SCORCH_FILA` (UNIDAD) — destruye la(s) unidad(es) enemigas más fuertes de la propia fila si total enemigo ≥ 10
+- `BERSERKER` — se transforma (usa `fuerzaTransformada`) si hay Mardroeme en la fila
+- `MARDROEME` — transforma todos los Berserkers de la fila; como ESPECIAL ocupa el slot lateral
+- `CUERNO_DEL_COMANDANTE` (ESPECIAL) — ocupa el slot lateral de la fila elegida; dobla no-héroes pasivamente
 
 ### Pasar turno
 ```
@@ -473,11 +504,25 @@ Authorization: Bearer <token>
 El jugador deja de jugar cartas por el resto de la ronda. Cuando ambos han pasado se resuelve la ronda.
 
 ### Resolución de ronda
-- Se suma la fuerza de las cartas en campo de cada jugador
-- Mayor fuerza gana; empate = ambos pierden 1 vida
-- Todas las cartas del campo van al cementerio
-- Entre rondas se roban cartas del mazo: **2** tras ronda 1, **1** tras ronda 2
-- El ganador de la ronda va primero en la siguiente
+
+Se calcula la fuerza de cada jugador aplicando modificadores en orden de precedencia:
+
+1. **Héroes** — siempre valen su fuerza base (inmunes a todo efecto externo)
+2. **Clima activo** — no-héroes en filas afectadas valen 1 (o `ceil(fuerza/2)` con LIDER_HALF_WEATHER)
+3. **ENLACE_APRETADO / VINCULO_ESTRECHO** — multiplica la fuerza por el número de copias en la fila
+4. **REFUERZO_MORAL** — +1 a no-héroes por cada carta MORAL presente (excepto a sí misma)
+5. **CUERNO_DEL_COMANDANTE** — dobla la suma de no-héroes de la fila (si no hay clima); héroes no se doblan
+6. **Líderes pasivos** — DOUBLE_CAC/RANGED/SIEGE multiplica la fila correspondiente; DOUBLE_SPIES dobla ESPIA en ambos campos
+
+Mayor fuerza gana; empate = ambos pierden 1 vida. Todas las cartas del campo van al cementerio. Entre rondas se roban cartas del mazo: **2** tras ronda 1, **1** tras ronda 2. El ganador de la ronda va primero en la siguiente.
+
+### Activar habilidad de líder
+```
+POST /ingame/v1/partidas/{id}/usar-lider
+Authorization: Bearer <token>
+Body: { "targetCartaPartidaId": 123, "descartarIds": [45, 67] }
+```
+Una sola activación por partida; consume el turno. Los campos del body son opcionales según la habilidad. Ver [AbilityRules.md](AbilityRules.md#habilidades-de-líder) para el detalle de cada líder.
 
 ### Vista asimétrica (`PartidaDTO`)
 Cada jugador ve su propia mano pero **no** la del oponente (solo el count). Tableros y cementerios de ambos son visibles.
@@ -488,19 +533,86 @@ Cada jugador ve su propia mano pero **no** la del oponente (solo el count). Tabl
 | `estado` | Enum | `MULLIGAN`, `EN_CURSO`, `TERMINADA` |
 | `rondaActual` | int | Número de ronda (1-3) |
 | `esMiTurno` | boolean | Si es el turno del jugador autenticado |
-| `yo` | JugadorPartidaDTO | Estado propio (mano visible, tablero, cementerio, vidas) |
-| `oponente` | JugadorPartidaDTO | Estado del oponente (mano=null, manoCount visible) |
-| `rondas` | List\<RondaDTO\> | Historial de rondas con puntajes relativos |
+| `climaEnCampo` | List\<CartaPartidaDTO\> | Cartas CLIMA actualmente en el campo |
+| `yo` | JugadorPartidaDTO | Estado propio (mano, tablero, cementerio, vidas, líder) |
+| `oponente` | JugadorPartidaDTO | Estado del oponente (mano=null, manoCount, tablero, cementerio, líder) |
+| `rondas` | List\<RondaDTO\> | Historial de rondas con puntajes |
 | `ganadorId` | UUID (nullable) | Ganador de la partida |
 | `empate` | boolean | Si la partida terminó en empate |
+
+**Campos de `JugadorPartidaDTO`:**
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `mano` | List\<CartaPartidaDTO\> | Cartas en mano (null para el oponente) |
+| `manoCount` | int | Número de cartas en mano (visible para ambos) |
+| `tablero` | TableroDTO | Filas del campo + fuerza + slots laterales |
+| `cementerio` | List\<CartaPartidaDTO\> | Cartas descartadas (visible para ambos) |
+| `vidas` | int | Vidas restantes (1-2) |
+| `paso` | boolean | Si ya pasó en la ronda actual |
+| `lider` | CartaCatalogoDTO (nullable) | Líder asignado al mazo |
+| `liderUsado` | boolean | Si la habilidad de líder ya fue activada |
+| `cartasReveladas` | List\<CartaPartidaDTO\> (nullable) | Solo visible en `oponente` cuando Emhyr Emperador (LIDER_REVEAL_HAND) reveló cartas |
 
 ### Entidades de la partida
 
 | Tabla | Descripción |
 |---|---|
-| `gw_partida` | Partida con 2 jugadores, estado, vidas, turno, resultado |
-| `gw_carta_partida` | Cada instancia de carta en la partida (zona: MAZO/MANO/CAMPO/CEMENTERIO) |
+| `gw_partida` | Partida con 2 jugadores, estado, vidas, turno, resultado. Incluye `lider_usado_jugador_uno/dos` y `cartas_reveladas_j1/j2` para habilidades de líder |
+| `gw_carta_partida` | Cada instancia de carta en la partida. Campos: `transformado` (Berserker transformado), `es_slot_lateral` (Cuerno/Mardroeme ESPECIAL en slot) |
 | `gw_ronda` | Resultado de cada ronda (puntajes, ganador, empate) |
+
+### Actualización de estadísticas al terminar
+
+Al resolverse la última ronda y pasar la partida a `TERMINADA`, ingame-service llama automáticamente a jugador-service para actualizar las estadísticas de ambos jugadores:
+
+```
+ganadorId != null  →  ganador: victorias+1  /  perdedor: derrotas+1
+empate = true      →  ambos: empates+1
+```
+
+La llamada es **best-effort**: si jugador-service no responde, la partida queda persistida correctamente y el fallo queda registrado en el log de ingame-service como `WARN`.
+
+---
+
+## Sistema de logs
+
+Los servicios usan SLF4J con Logback. El nivel por defecto es `INFO`; el nivel `DEBUG` activa el detalle carta por carta del cálculo de fuerza.
+
+### Configuración de niveles (`application.yml`)
+
+```yaml
+logging:
+  level:
+    com.arimar.gwent.ingameservice.service: DEBUG   # activo en desarrollo
+```
+
+### Qué loguea cada nivel
+
+| Nivel | Servicio | Ejemplos |
+|---|---|---|
+| `INFO` | `PartidaService` | Partida creada, mulligan completo (`→ EN_CURSO`), carta jugada, jugador pasa, resultado de ronda con puntuaciones y vidas, partida terminada con ganador |
+| `INFO` | `HabilidadService` | Habilidad disparada (ESPIA, MEDICO, MUSTER…), efecto aplicado, SCORCH total y cartas destruidas |
+| `INFO` | `LiderService` | Líder activado, efecto ejecutado (clima eliminado, carta robada del cementerio, cartas reveladas…) |
+| `DEBUG` | `HabilidadService` | Clima activo detectado, desglose por fila (`CAC=12 DIST=0 ASEDIO=5`), contribución individual de cada carta con todos sus modificadores |
+| `DEBUG` | `CartaPartidaStateMachine` | Cada transición de zona: `[carta-42] 'Guerrero': MAZO → MANO` |
+| `WARN` | `PartidaService` | Fallo al actualizar estadísticas en jugador-service (la partida ya fue guardada) |
+
+### Muestra de log con DEBUG activo
+
+```
+INFO  [P-5] uuid jugó 'Clan Dimun Pirate' [tipo=UNIDAD, hab=SCORCH, fila=ASEDIO]
+INFO  [P-5] SCORCH global: total ambos campos=24 → activa
+INFO  [P-5] SCORCH: destruye 2 carta(s) con fuerza efectiva 8 → [Ballestero, Arquero]
+DEBUG   [ASEDIO] 3 unidad(es) | clima=false horn=true liderDoble=false ...
+DEBUG     'Unidad A': 5 → 5
+DEBUG     'Unidad B': 5 → 7 (+MORAL+2)
+DEBUG     'Clan Dimun Pirate': 8 → 8
+DEBUG   [ASEDIO] héroes=0 no-héroes=18 factor=2 (Horn×2) → total=36
+INFO  [P-5] === Ronda 2 === J1=36 pts vs J2=12 pts → J1 gana [liderJ1=LIDER_DOUBLE_CAC usadoJ1=true ...]
+INFO  [P-5] J2 pierde 1 vida → vidasJ1=2 vidasJ2=0
+INFO  [P-5] Partida TERMINADA — Ganador: J1=uuid...
+```
 
 ---
 
@@ -525,12 +637,9 @@ El BFF propaga el `ErrorDTO` del servicio interno al cliente con el mismo códig
 
 ## Próximos pasos
 
-- Habilidades de cartas (ESPIA, MEDICO, ENLACE_APRETADO, REFUERZO_MORAL, etc.)
-- Efectos de clima y cartas especiales
-- Habilidades de líder
-- Exponer partidas vía BFF
-- solicitud-service: ciclo de vida de desafíos
-- Ranking y estadísticas
+- solicitud-service: ciclo de vida de desafíos (enviar, aceptar, rechazar, cancelar)
+- jugador-service: DELETE /api/players/me
+- ranking-service: aún no existe
 
 ---
 

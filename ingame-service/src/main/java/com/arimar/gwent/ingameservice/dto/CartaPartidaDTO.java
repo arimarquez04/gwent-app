@@ -19,8 +19,11 @@ public class CartaPartidaDTO {
     private TipoCarta tipo;
     private FilaCarta fila;
     private Integer fuerza;
+    private Integer fuerzaTransformada;
     private HabilidadCarta habilidad;
     private boolean esHeroe;
+    private boolean transformado;
+    private boolean esSlotLateral;
     private String imagenUrl;
 
     public static CartaPartidaDTO from(CartaPartida cp) {
@@ -33,8 +36,11 @@ public class CartaPartidaDTO {
                 .tipo(carta.getTipo())
                 .fila(carta.getFila())
                 .fuerza(carta.getFuerza())
+                .fuerzaTransformada(carta.getFuerzaTransformada())
                 .habilidad(carta.getHabilidad())
                 .esHeroe(carta.isEsHeroe())
+                .transformado(cp.isTransformado())
+                .esSlotLateral(cp.isEsSlotLateral())
                 .imagenUrl(carta.getImagenUrl())
                 .build();
     }

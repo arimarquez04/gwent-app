@@ -1,12 +1,10 @@
-package com.arimar.gwent.ingameservice.dto;
+package com.arimar.gwent.bff.dto.ingame;
 
-import lombok.Builder;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-@Builder
 public class TableroDTO {
 
     private List<CartaPartidaDTO> cuerpoACuerpo;

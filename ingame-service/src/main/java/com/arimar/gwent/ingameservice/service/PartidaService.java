@@ -1,5 +1,6 @@
 package com.arimar.gwent.ingameservice.service;
 
+import com.arimar.gwent.ingameservice.client.JugadorServiceClient;
 import com.arimar.gwent.ingameservice.domain.enums.*;
 import com.arimar.gwent.ingameservice.dto.*;
 import com.arimar.gwent.ingameservice.entity.*;
@@ -8,6 +9,7 @@ import com.arimar.gwent.ingameservice.repository.MazoRepository;
 import com.arimar.gwent.ingameservice.repository.PartidaRepository;
 import com.arimar.gwent.ingameservice.repository.RondaRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,7 +17,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Stream;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PartidaService {
@@ -30,6 +34,10 @@ public class PartidaService {
     private final CartaPartidaRepository cartaPartidaRepo;
     private final RondaRepository rondaRepo;
     private final MazoRepository mazoRepo;
+    private final CartaPartidaStateMachine cartaStateMachine;
+    private final HabilidadService habilidadService;
+    private final LiderService liderService;
+    private final JugadorServiceClient jugadorClient;
 
     private final Random random = new Random();
 
@@ -71,6 +79,17 @@ public class PartidaService {
         partida.setTurnoJugadorId(random.nextBoolean() ? jugadorId : req.getOponenteId());
 
         partida = partidaRepo.save(partida);
+        log.info("[P-{}] Partida creada: J1={} (mazo={}) vs J2={} (mazo={})",
+                partida.getId(), jugadorId, req.getMazoId(), req.getOponenteId(), req.getMazoOponenteId());
+
+        // LIDER_CANCEL_LEADER (Emhyr: El Blanco Llama) auto-activates at game creation
+        HabilidadCarta liderJ1 = getLiderHabilidadSafe(mazoUno);
+        HabilidadCarta liderJ2 = getLiderHabilidadSafe(mazoDos);
+        if (liderJ1 == HabilidadCarta.LIDER_CANCEL_LEADER || liderJ2 == HabilidadCarta.LIDER_CANCEL_LEADER) {
+            partida.setLiderUsadoJugadorUno(true);
+            partida.setLiderUsadoJugadorDos(true);
+            log.info("[P-{}] LIDER_CANCEL_LEADER: ambos líderes bloqueados permanentemente", partida.getId());
+        }
 
         repartirCartas(partida, jugadorId, mazoUno);
         repartirCartas(partida, req.getOponenteId(), mazoDos);
@@ -113,13 +132,13 @@ public class PartidaService {
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
                             "Card " + cpId + " is not in your hand"));
 
-            cartaADevolver.setZona(ZonaCarta.MAZO);
+            cartaStateMachine.devolverAlMazo(cartaADevolver);
             mano.remove(cartaADevolver);
             mazo.add(cartaADevolver);
 
             if (!mazo.isEmpty()) {
                 CartaPartida cartaRobada = mazo.get(random.nextInt(mazo.size()));
-                cartaRobada.setZona(ZonaCarta.MANO);
+                cartaStateMachine.robar(cartaRobada);
                 mazo.remove(cartaRobada);
                 mano.add(cartaRobada);
             }
@@ -137,6 +156,24 @@ public class PartidaService {
         if (partida.isJugadorUnoMulligan() && partida.isJugadorDosMulligan()) {
             partida.setEstado(EstadoPartida.EN_CURSO);
             partida.setRondaActual(1);
+            log.info("[P-{}] Mulligan completado → EN_CURSO, ronda 1", partida.getId());
+
+            // LIDER_DRAW_EXTRA (Francesca: Flor del Valle) auto-activates when match starts
+            if (getLiderHabilidadSafe(partida.getMazoJugadorUno()) == HabilidadCarta.LIDER_DRAW_EXTRA
+                    && !partida.isLiderUsadoJugadorUno()) {
+                habilidadService.robarCartas(partida, partida.getJugadorUnoId(), 1);
+                partida.setLiderUsadoJugadorUno(true);
+                log.info("[P-{}] LIDER_DRAW_EXTRA: J1 roba 1 carta extra", partida.getId());
+            }
+            if (getLiderHabilidadSafe(partida.getMazoJugadorDos()) == HabilidadCarta.LIDER_DRAW_EXTRA
+                    && !partida.isLiderUsadoJugadorDos()) {
+                habilidadService.robarCartas(partida, partida.getJugadorDosId(), 1);
+                partida.setLiderUsadoJugadorDos(true);
+                log.info("[P-{}] LIDER_DRAW_EXTRA: J2 roba 1 carta extra", partida.getId());
+            }
+        } else {
+            log.info("[P-{}] {} completa mulligan ({} carta(s) intercambiadas)",
+                    partida.getId(), jugadorId, req.getCartaPartidaIds().size());
         }
 
         partidaRepo.save(partida);
@@ -165,29 +202,56 @@ public class PartidaService {
         }
 
         CartaCatalogo carta = cartaPartida.getCartaCatalogo();
-        if (carta.getTipo() != TipoCarta.UNIDAD) {
+        TipoCarta tipo = carta.getTipo();
+        HabilidadCarta hab = carta.getHabilidad();
+
+        boolean esDecoy         = tipo == TipoCarta.ESPECIAL && hab == HabilidadCarta.DECOY;
+        boolean esBuenClima     = tipo == TipoCarta.ESPECIAL && hab == HabilidadCarta.CLIMA_LIMPIO;
+        boolean esScorchInst    = tipo == TipoCarta.ESPECIAL && hab == HabilidadCarta.SCORCH;
+        boolean esMardroemeSlot = tipo == TipoCarta.ESPECIAL && hab == HabilidadCarta.MARDROEME;
+        boolean esHornSlot      = tipo == TipoCarta.ESPECIAL && hab == HabilidadCarta.CUERNO_DEL_COMANDANTE;
+        boolean esClima         = tipo == TipoCarta.CLIMA;
+        boolean esSlotLateral   = esMardroemeSlot || esHornSlot;
+
+        if (tipo != TipoCarta.UNIDAD && !esDecoy && !esBuenClima && !esScorchInst
+                && !esMardroemeSlot && !esHornSlot && !esClima) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
-                    "Only unit cards can be played in this version");
+                    "Only unit, climate, and applicable special cards can be played");
         }
 
-        FilaCarta filaDestino = determinarFila(carta, req.getFila());
+        if (esSlotLateral) {
+            FilaCarta filaSlot = req.getFila();
+            if (filaSlot == null || filaSlot == FilaCarta.AGIL) {
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                        "Slot lateral cards require a specific row (CUERPO_A_CUERPO, DISTANCIA or ASEDIO)");
+            }
+            boolean ocupado = cartaPartidaRepo
+                    .findByPartidaAndJugadorIdAndZona(partida, jugadorId, ZonaCarta.CAMPO)
+                    .stream()
+                    .anyMatch(cp -> cp.isEsSlotLateral() && cp.getFilaEnCampo() == filaSlot);
+            if (ocupado) {
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                        "Row " + filaSlot + " already has a support card (slot lateral occupied)");
+            }
+        }
 
-        cartaPartida.setZona(ZonaCarta.CAMPO);
-        cartaPartida.setFilaEnCampo(filaDestino);
+        FilaCarta filaDestino = (esDecoy || esBuenClima || esScorchInst) ? null
+                : determinarFila(carta, req.getFila());
+
+        if (esSlotLateral) cartaPartida.setEsSlotLateral(true);
+
+        cartaStateMachine.jugar(cartaPartida, filaDestino);
         cartaPartidaRepo.save(cartaPartida);
 
-        // Turn logic
+        habilidadService.procesarAlJugar(cartaPartida, partida, jugadorId, req);
+
         UUID oponenteId = esJugadorUno ? partida.getJugadorDosId() : partida.getJugadorUnoId();
         boolean oponentePaso = esJugadorUno ? partida.isJugadorDosPaso() : partida.isJugadorUnoPaso();
 
-        // Auto-pass if no cards left in hand
         List<CartaPartida> manoRestante = cartaPartidaRepo.findByPartidaAndJugadorIdAndZona(partida, jugadorId, ZonaCarta.MANO);
         if (manoRestante.isEmpty()) {
-            if (esJugadorUno) {
-                partida.setJugadorUnoPaso(true);
-            } else {
-                partida.setJugadorDosPaso(true);
-            }
+            if (esJugadorUno) partida.setJugadorUnoPaso(true);
+            else              partida.setJugadorDosPaso(true);
         }
 
         boolean jugadorPaso = esJugadorUno ? partida.isJugadorUnoPaso() : partida.isJugadorDosPaso();
@@ -197,9 +261,9 @@ public class PartidaService {
         } else if (!oponentePaso) {
             partida.setTurnoJugadorId(oponenteId);
         }
-        // If opponent passed, keep turn (player continues playing)
 
         partidaRepo.save(partida);
+        if (partida.getEstado() == EstadoPartida.TERMINADA) notificarResultado(partida);
         return buildPartidaDTO(partida, jugadorId);
     }
 
@@ -214,11 +278,9 @@ public class PartidaService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "You have already passed this round");
         }
 
-        if (esJugadorUno) {
-            partida.setJugadorUnoPaso(true);
-        } else {
-            partida.setJugadorDosPaso(true);
-        }
+        if (esJugadorUno) partida.setJugadorUnoPaso(true);
+        else              partida.setJugadorDosPaso(true);
+        log.info("[P-{}] {} pasa en ronda {}", partida.getId(), jugadorId, partida.getRondaActual());
 
         UUID oponenteId = esJugadorUno ? partida.getJugadorDosId() : partida.getJugadorUnoId();
         boolean oponentePaso = esJugadorUno ? partida.isJugadorDosPaso() : partida.isJugadorUnoPaso();
@@ -226,6 +288,49 @@ public class PartidaService {
         if (oponentePaso) {
             resolverRonda(partida);
         } else {
+            partida.setTurnoJugadorId(oponenteId);
+        }
+
+        partidaRepo.save(partida);
+        if (partida.getEstado() == EstadoPartida.TERMINADA) notificarResultado(partida);
+        return buildPartidaDTO(partida, jugadorId);
+    }
+
+    @Transactional
+    public PartidaDTO usarLider(UUID jugadorId, Long partidaId, UsarLiderRequest req) {
+        Partida partida = findPartida(partidaId);
+        validateJugadorEnPartida(jugadorId, partida);
+        validateTurno(jugadorId, partida);
+
+        boolean esJ1 = jugadorId.equals(partida.getJugadorUnoId());
+        boolean yaUsado = esJ1 ? partida.isLiderUsadoJugadorUno() : partida.isLiderUsadoJugadorDos();
+        if (yaUsado)
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Leader ability already used");
+
+        if ((esJ1 && partida.isJugadorUnoPaso()) || (!esJ1 && partida.isJugadorDosPaso()))
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "You have already passed this round");
+
+        liderService.procesarLider(partida, jugadorId, req);
+
+        if (esJ1) partida.setLiderUsadoJugadorUno(true);
+        else      partida.setLiderUsadoJugadorDos(true);
+        log.info("[P-{}] Líder marcado como usado para {}", partida.getId(), jugadorId);
+
+        // Consume turn
+        UUID oponenteId = esJ1 ? partida.getJugadorDosId() : partida.getJugadorUnoId();
+        boolean oponentePaso = esJ1 ? partida.isJugadorDosPaso() : partida.isJugadorUnoPaso();
+
+        List<CartaPartida> manoRestante = cartaPartidaRepo.findByPartidaAndJugadorIdAndZona(partida, jugadorId, ZonaCarta.MANO);
+        if (manoRestante.isEmpty()) {
+            if (esJ1) partida.setJugadorUnoPaso(true);
+            else      partida.setJugadorDosPaso(true);
+        }
+
+        boolean jugadorPaso = esJ1 ? partida.isJugadorUnoPaso() : partida.isJugadorDosPaso();
+
+        if (jugadorPaso && oponentePaso) {
+            resolverRonda(partida);
+        } else if (!oponentePaso) {
             partida.setTurnoJugadorId(oponenteId);
         }
 
@@ -239,9 +344,7 @@ public class PartidaService {
         List<CartaPartida> todasLasCartas = new ArrayList<>();
 
         for (MazoCarta mc : mazo.getCartas()) {
-            if (mc.getCartaCatalogo().getTipo() == TipoCarta.LIDER) {
-                continue;
-            }
+            if (mc.getCartaCatalogo().getTipo() == TipoCarta.LIDER) continue;
             for (int i = 0; i < mc.getCantidad(); i++) {
                 CartaPartida cp = new CartaPartida();
                 cp.setPartida(partida);
@@ -253,12 +356,8 @@ public class PartidaService {
         }
 
         Collections.shuffle(todasLasCartas, random);
-
         int aDar = Math.min(CARTAS_INICIALES, todasLasCartas.size());
-        for (int i = 0; i < aDar; i++) {
-            todasLasCartas.get(i).setZona(ZonaCarta.MANO);
-        }
-
+        for (int i = 0; i < aDar; i++) cartaStateMachine.robar(todasLasCartas.get(i));
         cartaPartidaRepo.saveAll(todasLasCartas);
     }
 
@@ -268,16 +367,23 @@ public class PartidaService {
         List<CartaPartida> campoJ2 = cartaPartidaRepo.findByPartidaAndJugadorIdAndZona(
                 partida, partida.getJugadorDosId(), ZonaCarta.CAMPO);
 
-        int fuerzaJ1 = campoJ1.stream()
-                .filter(cp -> cp.getCartaCatalogo().getFuerza() != null)
-                .mapToInt(cp -> cp.getCartaCatalogo().getFuerza())
-                .sum();
-        int fuerzaJ2 = campoJ2.stream()
-                .filter(cp -> cp.getCartaCatalogo().getFuerza() != null)
-                .mapToInt(cp -> cp.getCartaCatalogo().getFuerza())
-                .sum();
+        Set<FilaCarta> climaActivo = habilidadService.resolverClimaActivo(campoJ1, campoJ2);
 
-        // Create round record
+        HabilidadCarta liderHabJ1 = getLiderHabilidadSafe(partida.getMazoJugadorUno());
+        boolean liderUsadoJ1 = partida.isLiderUsadoJugadorUno();
+        HabilidadCarta liderHabJ2 = getLiderHabilidadSafe(partida.getMazoJugadorDos());
+        boolean liderUsadoJ2 = partida.isLiderUsadoJugadorDos();
+
+        boolean dobleEspias = (liderUsadoJ1 && liderHabJ1 == HabilidadCarta.LIDER_DOUBLE_SPIES)
+                            || (liderUsadoJ2 && liderHabJ2 == HabilidadCarta.LIDER_DOUBLE_SPIES);
+
+        int fuerzaJ1 = habilidadService.calcularFuerzaTotal(campoJ1, climaActivo, liderHabJ1, liderUsadoJ1, dobleEspias);
+        int fuerzaJ2 = habilidadService.calcularFuerzaTotal(campoJ2, climaActivo, liderHabJ2, liderUsadoJ2, dobleEspias);
+        log.info("[P-{}] === Ronda {} === J1={} pts vs J2={} pts → {} [liderJ1={} usadoJ1={}, liderJ2={} usadoJ2={}, dobleEspias={}]",
+                partida.getId(), partida.getRondaActual(), fuerzaJ1, fuerzaJ2,
+                fuerzaJ1 > fuerzaJ2 ? "J1 gana" : fuerzaJ2 > fuerzaJ1 ? "J2 gana" : "Empate",
+                liderHabJ1, liderUsadoJ1, liderHabJ2, liderUsadoJ2, dobleEspias);
+
         Ronda ronda = new Ronda();
         ronda.setPartida(partida);
         ronda.setNumeroRonda(partida.getRondaActual());
@@ -287,51 +393,51 @@ public class PartidaService {
         if (fuerzaJ1 > fuerzaJ2) {
             ronda.setGanadorId(partida.getJugadorUnoId());
             partida.setVidasJugadorDos(partida.getVidasJugadorDos() - 1);
+            log.info("[P-{}] J2 pierde 1 vida → vidasJ1={} vidasJ2={}",
+                    partida.getId(), partida.getVidasJugadorUno(), partida.getVidasJugadorDos());
         } else if (fuerzaJ2 > fuerzaJ1) {
             ronda.setGanadorId(partida.getJugadorDosId());
             partida.setVidasJugadorUno(partida.getVidasJugadorUno() - 1);
+            log.info("[P-{}] J1 pierde 1 vida → vidasJ1={} vidasJ2={}",
+                    partida.getId(), partida.getVidasJugadorUno(), partida.getVidasJugadorDos());
         } else {
             ronda.setEmpate(true);
             partida.setVidasJugadorUno(partida.getVidasJugadorUno() - 1);
             partida.setVidasJugadorDos(partida.getVidasJugadorDos() - 1);
+            log.info("[P-{}] Empate de ronda → ambos pierden 1 vida → vidasJ1={} vidasJ2={}",
+                    partida.getId(), partida.getVidasJugadorUno(), partida.getVidasJugadorDos());
         }
 
         rondaRepo.save(ronda);
         partida.getRondas().add(ronda);
 
-        // Move all field cards to graveyard
-        for (CartaPartida cp : campoJ1) {
-            cp.setZona(ZonaCarta.CEMENTERIO);
-            cp.setFilaEnCampo(null);
-        }
-        for (CartaPartida cp : campoJ2) {
-            cp.setZona(ZonaCarta.CEMENTERIO);
-            cp.setFilaEnCampo(null);
-        }
+        campoJ1.forEach(cartaStateMachine::descartar);
+        campoJ2.forEach(cartaStateMachine::descartar);
         cartaPartidaRepo.saveAll(campoJ1);
         cartaPartidaRepo.saveAll(campoJ2);
 
-        // Reset pass flags
         partida.setJugadorUnoPaso(false);
         partida.setJugadorDosPaso(false);
 
-        // Check end of match
         if (partida.getVidasJugadorUno() <= 0 && partida.getVidasJugadorDos() <= 0) {
             partida.setEstado(EstadoPartida.TERMINADA);
             partida.setEmpate(true);
             partida.setFinishedAt(LocalDateTime.now());
+            log.info("[P-{}] Partida TERMINADA — Empate", partida.getId());
             return;
         }
         if (partida.getVidasJugadorUno() <= 0) {
             partida.setEstado(EstadoPartida.TERMINADA);
             partida.setGanadorId(partida.getJugadorDosId());
             partida.setFinishedAt(LocalDateTime.now());
+            log.info("[P-{}] Partida TERMINADA — Ganador: J2={}", partida.getId(), partida.getJugadorDosId());
             return;
         }
         if (partida.getVidasJugadorDos() <= 0) {
             partida.setEstado(EstadoPartida.TERMINADA);
             partida.setGanadorId(partida.getJugadorUnoId());
             partida.setFinishedAt(LocalDateTime.now());
+            log.info("[P-{}] Partida TERMINADA — Ganador: J1={}", partida.getId(), partida.getJugadorUnoId());
             return;
         }
         if (partida.getRondaActual() >= 3) {
@@ -339,23 +445,23 @@ public class PartidaService {
             partida.setFinishedAt(LocalDateTime.now());
             if (partida.getVidasJugadorUno() > partida.getVidasJugadorDos()) {
                 partida.setGanadorId(partida.getJugadorUnoId());
+                log.info("[P-{}] Partida TERMINADA (3 rondas) — Ganador: J1={}", partida.getId(), partida.getJugadorUnoId());
             } else if (partida.getVidasJugadorDos() > partida.getVidasJugadorUno()) {
                 partida.setGanadorId(partida.getJugadorDosId());
+                log.info("[P-{}] Partida TERMINADA (3 rondas) — Ganador: J2={}", partida.getId(), partida.getJugadorDosId());
             } else {
                 partida.setEmpate(true);
+                log.info("[P-{}] Partida TERMINADA (3 rondas) — Empate", partida.getId());
             }
             return;
         }
 
-        // Draw cards for next round
         int cartasARobar = partida.getRondaActual() == 1 ? ROBAR_TRAS_RONDA_1 : ROBAR_TRAS_RONDA_2;
-        robarCartas(partida, partida.getJugadorUnoId(), cartasARobar);
-        robarCartas(partida, partida.getJugadorDosId(), cartasARobar);
+        habilidadService.robarCartas(partida, partida.getJugadorUnoId(), cartasARobar);
+        habilidadService.robarCartas(partida, partida.getJugadorDosId(), cartasARobar);
 
-        // Next round
         partida.setRondaActual(partida.getRondaActual() + 1);
 
-        // Winner of round goes first; on tie, random
         if (ronda.getGanadorId() != null) {
             partida.setTurnoJugadorId(ronda.getGanadorId());
         } else {
@@ -363,31 +469,34 @@ public class PartidaService {
         }
     }
 
-    private void robarCartas(Partida partida, UUID jugadorId, int cantidad) {
-        List<CartaPartida> mazo = cartaPartidaRepo.findByPartidaAndJugadorIdAndZona(partida, jugadorId, ZonaCarta.MAZO);
-        Collections.shuffle(mazo, random);
-        int aRobar = Math.min(cantidad, mazo.size());
-        for (int i = 0; i < aRobar; i++) {
-            mazo.get(i).setZona(ZonaCarta.MANO);
-        }
-        if (aRobar > 0) {
-            cartaPartidaRepo.saveAll(mazo.subList(0, aRobar));
-        }
-    }
-
     private FilaCarta determinarFila(CartaCatalogo carta, FilaCarta filaRequest) {
         if (carta.getFila() == FilaCarta.AGIL) {
-            if (filaRequest == null) {
+            if (filaRequest == null)
                 throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
                         "Agile cards require a row selection (CUERPO_A_CUERPO or DISTANCIA)");
-            }
-            if (filaRequest != FilaCarta.CUERPO_A_CUERPO && filaRequest != FilaCarta.DISTANCIA) {
+            if (filaRequest != FilaCarta.CUERPO_A_CUERPO && filaRequest != FilaCarta.DISTANCIA)
                 throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
                         "Agile cards can only be placed on CUERPO_A_CUERPO or DISTANCIA");
-            }
             return filaRequest;
         }
         return carta.getFila();
+    }
+
+    private void notificarResultado(Partida partida) {
+        try {
+            jugadorClient.reportMatchResult(
+                    partida.getJugadorUnoId(),
+                    partida.getJugadorDosId(),
+                    partida.getGanadorId(),
+                    partida.isEmpate()
+            );
+        } catch (Exception e) {
+            log.warn("Failed to update player stats for match {}: {}", partida.getId(), e.getMessage());
+        }
+    }
+
+    private HabilidadCarta getLiderHabilidadSafe(Mazo mazo) {
+        return (mazo.getLider() != null) ? mazo.getLider().getHabilidad() : HabilidadCarta.NINGUNA;
     }
 
     // ==================== VALIDATION HELPERS ====================
@@ -422,8 +531,34 @@ public class PartidaService {
         List<CartaPartida> misCartas = cartaPartidaRepo.findByPartidaAndJugadorId(partida, myId);
         List<CartaPartida> cartasOponente = cartaPartidaRepo.findByPartidaAndJugadorId(partida, opId);
 
-        JugadorPartidaDTO yo = buildJugadorDTO(myId, misCartas, partida, viewerEsJ1, true);
-        JugadorPartidaDTO oponente = buildJugadorDTO(opId, cartasOponente, partida, !viewerEsJ1, false);
+        List<CartaPartida> miCampo = misCartas.stream().filter(c -> c.getZona() == ZonaCarta.CAMPO).toList();
+        List<CartaPartida> campoOponente = cartasOponente.stream().filter(c -> c.getZona() == ZonaCarta.CAMPO).toList();
+
+        Set<FilaCarta> climaActivo = habilidadService.resolverClimaActivo(miCampo, campoOponente);
+
+        List<CartaPartidaDTO> climaEnCampo = Stream.concat(miCampo.stream(), campoOponente.stream())
+                .filter(c -> c.getCartaCatalogo().getTipo() == TipoCarta.CLIMA)
+                .map(CartaPartidaDTO::from)
+                .toList();
+
+        // Leader context
+        HabilidadCarta miLiderHab     = getLiderHabilidadSafe(viewerEsJ1 ? partida.getMazoJugadorUno() : partida.getMazoJugadorDos());
+        boolean        miLiderUsado   = viewerEsJ1 ? partida.isLiderUsadoJugadorUno() : partida.isLiderUsadoJugadorDos();
+        HabilidadCarta opLiderHab     = getLiderHabilidadSafe(viewerEsJ1 ? partida.getMazoJugadorDos() : partida.getMazoJugadorUno());
+        boolean        opLiderUsado   = viewerEsJ1 ? partida.isLiderUsadoJugadorDos() : partida.isLiderUsadoJugadorUno();
+
+        // Revealed cards (Emhyr Emperador): viewer's revealed cards are shown in oponente section
+        String reveladasStr = viewerEsJ1 ? partida.getCartasReveladasJ1() : partida.getCartasReveladasJ2();
+        List<Long> reveladasIds = parseIds(reveladasStr);
+        List<CartaPartidaDTO> cartasReveladasOponente = cartasOponente.stream()
+                .filter(c -> c.getZona() == ZonaCarta.MANO && reveladasIds.contains(c.getId()))
+                .map(CartaPartidaDTO::from)
+                .toList();
+
+        JugadorPartidaDTO yo = buildJugadorDTO(myId, misCartas, miCampo, partida, viewerEsJ1,
+                true, climaActivo, miLiderHab, miLiderUsado, List.of());
+        JugadorPartidaDTO oponente = buildJugadorDTO(opId, cartasOponente, campoOponente, partida, !viewerEsJ1,
+                false, climaActivo, opLiderHab, opLiderUsado, cartasReveladasOponente);
 
         List<RondaDTO> rondasDTO = partida.getRondas().stream()
                 .map(r -> {
@@ -447,6 +582,7 @@ public class PartidaService {
                 .yo(yo)
                 .oponente(oponente)
                 .rondas(rondasDTO)
+                .climaEnCampo(climaEnCampo)
                 .ganadorId(partida.getGanadorId())
                 .empate(partida.isEmpate())
                 .createdAt(partida.getCreatedAt())
@@ -455,15 +591,21 @@ public class PartidaService {
     }
 
     private JugadorPartidaDTO buildJugadorDTO(UUID jugadorId, List<CartaPartida> cartas,
-                                               Partida partida, boolean esJ1, boolean esMio) {
+                                               List<CartaPartida> campo, Partida partida,
+                                               boolean esJ1, boolean esMio,
+                                               Set<FilaCarta> climaActivo,
+                                               HabilidadCarta liderHab, boolean liderUsado,
+                                               List<CartaPartidaDTO> cartasReveladas) {
         List<CartaPartida> mano = cartas.stream().filter(c -> c.getZona() == ZonaCarta.MANO).toList();
         List<CartaPartida> mazo = cartas.stream().filter(c -> c.getZona() == ZonaCarta.MAZO).toList();
-        List<CartaPartida> campo = cartas.stream().filter(c -> c.getZona() == ZonaCarta.CAMPO).toList();
         List<CartaPartida> cementerio = cartas.stream().filter(c -> c.getZona() == ZonaCarta.CEMENTERIO).toList();
 
-        TableroDTO tablero = buildTableroDTO(campo);
-
+        TableroDTO tablero = buildTableroDTO(campo, climaActivo, liderHab, liderUsado);
         int fuerzaTotal = tablero.getFuerzaCuerpoACuerpo() + tablero.getFuerzaDistancia() + tablero.getFuerzaAsedio();
+
+        Mazo mazoEntity = esJ1 ? partida.getMazoJugadorUno() : partida.getMazoJugadorDos();
+        CartaCatalogoDTO liderDTO = mazoEntity.getLider() != null
+                ? CartaCatalogoDTO.from(mazoEntity.getLider()) : null;
 
         return JugadorPartidaDTO.builder()
                 .jugadorId(jugadorId)
@@ -476,28 +618,54 @@ public class PartidaService {
                 .tablero(tablero)
                 .cementerio(cementerio.stream().map(CartaPartidaDTO::from).toList())
                 .fuerzaTotal(fuerzaTotal)
+                .lider(liderDTO)
+                .liderUsado(liderUsado)
+                .cartasReveladas(esMio ? null : (cartasReveladas.isEmpty() ? null : cartasReveladas))
                 .build();
     }
 
-    private TableroDTO buildTableroDTO(List<CartaPartida> campo) {
-        List<CartaPartida> cac = campo.stream().filter(c -> c.getFilaEnCampo() == FilaCarta.CUERPO_A_CUERPO).toList();
-        List<CartaPartida> dist = campo.stream().filter(c -> c.getFilaEnCampo() == FilaCarta.DISTANCIA).toList();
-        List<CartaPartida> asedio = campo.stream().filter(c -> c.getFilaEnCampo() == FilaCarta.ASEDIO).toList();
+    private TableroDTO buildTableroDTO(List<CartaPartida> campo, Set<FilaCarta> climaActivo,
+                                        HabilidadCarta liderHab, boolean liderUsado) {
+        HabilidadCarta hab     = liderUsado ? liderHab : HabilidadCarta.NINGUNA;
+        boolean dobleCac       = (hab == HabilidadCarta.LIDER_DOUBLE_CAC);
+        boolean dobleDistancia = (hab == HabilidadCarta.LIDER_DOUBLE_RANGED);
+        boolean dobleAsedio    = (hab == HabilidadCarta.LIDER_DOUBLE_SIEGE);
+        boolean medioClima     = (hab == HabilidadCarta.LIDER_HALF_WEATHER);
+
+        List<CartaPartida> cac    = habilidadService.filtrarFilaUnidades(campo, FilaCarta.CUERPO_A_CUERPO);
+        List<CartaPartida> dist   = habilidadService.filtrarFilaUnidades(campo, FilaCarta.DISTANCIA);
+        List<CartaPartida> asedio = habilidadService.filtrarFilaUnidades(campo, FilaCarta.ASEDIO);
 
         return TableroDTO.builder()
                 .cuerpoACuerpo(cac.stream().map(CartaPartidaDTO::from).toList())
                 .distancia(dist.stream().map(CartaPartidaDTO::from).toList())
                 .asedio(asedio.stream().map(CartaPartidaDTO::from).toList())
-                .fuerzaCuerpoACuerpo(sumarFuerza(cac))
-                .fuerzaDistancia(sumarFuerza(dist))
-                .fuerzaAsedio(sumarFuerza(asedio))
+                .fuerzaCuerpoACuerpo(habilidadService.calcularFilaPublica(cac,    climaActivo, FilaCarta.CUERPO_A_CUERPO,
+                        habilidadService.tieneHorn(campo, FilaCarta.CUERPO_A_CUERPO), dobleCac,       medioClima))
+                .fuerzaDistancia    (habilidadService.calcularFilaPublica(dist,   climaActivo, FilaCarta.DISTANCIA,
+                        habilidadService.tieneHorn(campo, FilaCarta.DISTANCIA),       dobleDistancia, medioClima))
+                .fuerzaAsedio       (habilidadService.calcularFilaPublica(asedio, climaActivo, FilaCarta.ASEDIO,
+                        habilidadService.tieneHorn(campo, FilaCarta.ASEDIO),          dobleAsedio,    medioClima))
+                .slotLateralCuerpoACuerpo(slotLateral(campo, FilaCarta.CUERPO_A_CUERPO))
+                .slotLateralDistancia    (slotLateral(campo, FilaCarta.DISTANCIA))
+                .slotLateralAsedio       (slotLateral(campo, FilaCarta.ASEDIO))
                 .build();
     }
 
-    private int sumarFuerza(List<CartaPartida> cartas) {
-        return cartas.stream()
-                .filter(cp -> cp.getCartaCatalogo().getFuerza() != null)
-                .mapToInt(cp -> cp.getCartaCatalogo().getFuerza())
-                .sum();
+    private CartaPartidaDTO slotLateral(List<CartaPartida> campo, FilaCarta fila) {
+        return campo.stream()
+                .filter(cp -> cp.isEsSlotLateral() && cp.getFilaEnCampo() == fila)
+                .findFirst()
+                .map(CartaPartidaDTO::from)
+                .orElse(null);
+    }
+
+    private List<Long> parseIds(String ids) {
+        if (ids == null || ids.isBlank()) return List.of();
+        return Arrays.stream(ids.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .map(Long::parseLong)
+                .toList();
     }
 }

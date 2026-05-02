@@ -35,6 +35,8 @@ public class CartaCatalogo {
 
     private Integer fuerza;
 
+    private Integer fuerzaTransformada;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private HabilidadCarta habilidad;

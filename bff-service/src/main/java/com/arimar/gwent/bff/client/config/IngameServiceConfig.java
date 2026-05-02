@@ -15,4 +15,5 @@ public class IngameServiceConfig {
     private String cardsUrl;
     private String playerCardsUrl;
     private String mazosUrl;
+    private String partidasUrl;
 }

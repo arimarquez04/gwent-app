@@ -66,6 +66,18 @@ public class Partida {
     @Column(nullable = false)
     private boolean empate;
 
+    @Column(nullable = false, columnDefinition = "tinyint(1) not null default 0")
+    private boolean liderUsadoJugadorUno;
+
+    @Column(nullable = false, columnDefinition = "tinyint(1) not null default 0")
+    private boolean liderUsadoJugadorDos;
+
+    @Column(name = "cartas_reveladas_j1", length = 200)
+    private String cartasReveladasJ1;
+
+    @Column(name = "cartas_reveladas_j2", length = 200)
+    private String cartasReveladasJ2;
+
     @OneToMany(mappedBy = "partida", cascade = CascadeType.ALL)
     private List<CartaPartida> cartas = new ArrayList<>();
 

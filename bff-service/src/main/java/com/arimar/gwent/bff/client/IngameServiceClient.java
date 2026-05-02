@@ -148,4 +148,64 @@ public class IngameServiceClient {
             throw errorMapper.toException(cfg.getName(), url, response.httpStatus(), response.error());
         }
     }
+
+    public GenericResponseDTO<PartidaDTO> createPartida(CreatePartidaRequest request) {
+        String url = cfg.getBaseUrl() + cfg.getPartidasUrl();
+        ServiceCallResponse<PartidaDTO> response = invoker.exchange(
+                HttpMethod.POST, url, request, Map.of(),
+                new ParameterizedTypeReference<>() {}
+        );
+        if (response.isOk()) return response.ok();
+        throw errorMapper.toException(cfg.getName(), url, response.httpStatus(), response.error());
+    }
+
+    public GenericResponseDTO<PartidaDTO> getPartida(Long id) {
+        String url = cfg.getBaseUrl() + cfg.getPartidasUrl() + "/" + id;
+        ServiceCallResponse<PartidaDTO> response = invoker.exchange(
+                HttpMethod.GET, url, null, Map.of(),
+                new ParameterizedTypeReference<>() {}
+        );
+        if (response.isOk()) return response.ok();
+        throw errorMapper.toException(cfg.getName(), url, response.httpStatus(), response.error());
+    }
+
+    public GenericResponseDTO<PartidaDTO> mulligan(Long id, MulliganRequest request) {
+        String url = cfg.getBaseUrl() + cfg.getPartidasUrl() + "/" + id + "/mulligan";
+        ServiceCallResponse<PartidaDTO> response = invoker.exchange(
+                HttpMethod.POST, url, request, Map.of(),
+                new ParameterizedTypeReference<>() {}
+        );
+        if (response.isOk()) return response.ok();
+        throw errorMapper.toException(cfg.getName(), url, response.httpStatus(), response.error());
+    }
+
+    public GenericResponseDTO<PartidaDTO> jugarCarta(Long id, JugarCartaRequest request) {
+        String url = cfg.getBaseUrl() + cfg.getPartidasUrl() + "/" + id + "/jugar-carta";
+        ServiceCallResponse<PartidaDTO> response = invoker.exchange(
+                HttpMethod.POST, url, request, Map.of(),
+                new ParameterizedTypeReference<>() {}
+        );
+        if (response.isOk()) return response.ok();
+        throw errorMapper.toException(cfg.getName(), url, response.httpStatus(), response.error());
+    }
+
+    public GenericResponseDTO<PartidaDTO> pasar(Long id) {
+        String url = cfg.getBaseUrl() + cfg.getPartidasUrl() + "/" + id + "/pasar";
+        ServiceCallResponse<PartidaDTO> response = invoker.exchange(
+                HttpMethod.POST, url, null, Map.of(),
+                new ParameterizedTypeReference<>() {}
+        );
+        if (response.isOk()) return response.ok();
+        throw errorMapper.toException(cfg.getName(), url, response.httpStatus(), response.error());
+    }
+
+    public GenericResponseDTO<PartidaDTO> usarLider(Long id, UsarLiderRequest request) {
+        String url = cfg.getBaseUrl() + cfg.getPartidasUrl() + "/" + id + "/usar-lider";
+        ServiceCallResponse<PartidaDTO> response = invoker.exchange(
+                HttpMethod.POST, url, request, Map.of(),
+                new ParameterizedTypeReference<>() {}
+        );
+        if (response.isOk()) return response.ok();
+        throw errorMapper.toException(cfg.getName(), url, response.httpStatus(), response.error());
+    }
 }

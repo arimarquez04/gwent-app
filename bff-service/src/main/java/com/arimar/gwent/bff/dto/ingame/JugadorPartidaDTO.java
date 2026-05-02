@@ -1,13 +1,11 @@
-package com.arimar.gwent.ingameservice.dto;
+package com.arimar.gwent.bff.dto.ingame;
 
-import lombok.Builder;
 import lombok.Data;
 
 import java.util.List;
 import java.util.UUID;
 
 @Data
-@Builder
 public class JugadorPartidaDTO {
 
     private UUID jugadorId;
@@ -22,7 +20,7 @@ public class JugadorPartidaDTO {
     private List<CartaPartidaDTO> cementerio;
     private int fuerzaTotal;
 
-    private CartaCatalogoDTO lider;
+    private CartaPartidaDTO lider;
     private boolean liderUsado;
     private List<CartaPartidaDTO> cartasReveladas;
 }

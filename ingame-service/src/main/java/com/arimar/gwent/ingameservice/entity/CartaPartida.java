@@ -34,4 +34,10 @@ public class CartaPartida {
     @Enumerated(EnumType.STRING)
     @Column(name = "fila_en_campo", length = 20)
     private FilaCarta filaEnCampo;
+
+    @Column(nullable = false, columnDefinition = "tinyint(1) not null default 0")
+    private boolean transformado;
+
+    @Column(name = "es_slot_lateral", nullable = false, columnDefinition = "tinyint(1) not null default 0")
+    private boolean esSlotLateral;
 }

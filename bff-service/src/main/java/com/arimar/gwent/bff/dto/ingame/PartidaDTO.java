@@ -1,7 +1,5 @@
-package com.arimar.gwent.ingameservice.dto;
+package com.arimar.gwent.bff.dto.ingame;
 
-import com.arimar.gwent.ingameservice.domain.enums.EstadoPartida;
-import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -9,11 +7,10 @@ import java.util.List;
 import java.util.UUID;
 
 @Data
-@Builder
 public class PartidaDTO {
 
     private Long id;
-    private EstadoPartida estado;
+    private String estado;
     private int rondaActual;
     private boolean esMiTurno;
 

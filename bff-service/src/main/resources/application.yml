@@ -41,6 +41,7 @@ gwent:
       cards-url: "/ingame/v1/cards"
       player-cards-url: "/ingame/v1/players/me/cards"
       mazos-url: "/ingame/v1/players/me/mazos"
+      partidas-url: "/ingame/v1/partidas"
     auth:
       name: "auth-service"
       v1-version: "/v1"

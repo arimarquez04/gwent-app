@@ -432,7 +432,7 @@ sequenceDiagram
 
 ## 12. Crear partida
 
-**Acción:** Se crea una partida entre dos jugadores con mazos activos. Se reparten 10 cartas aleatorias a cada uno.
+**Acción:** Se crea una partida entre dos jugadores con mazos activos. Se reparten 10 cartas aleatorias a cada uno. Si algún jugador tiene el líder `LIDER_CANCEL_LEADER` (Emhyr: El Blanco Llama), ambos líderes quedan bloqueados permanentemente al instante.
 
 ```
 POST /ingame/v1/partidas
@@ -461,6 +461,10 @@ sequenceDiagram
             IS->>DB: INSERT gw_partida (estado=MULLIGAN, vidas=2/2, turno=aleatorio)
             IS->>IS: Para cada jugador: expandir MazoCarta (cantidad→N instancias)<br/>Shuffle, primeras 10 → MANO, resto → MAZO
             IS->>DB: INSERT gw_carta_partida (N registros por jugador)
+            IS->>IS: ¿Algún líder tiene LIDER_CANCEL_LEADER?
+            opt LIDER_CANCEL_LEADER activo
+                IS->>DB: UPDATE gw_partida SET lider_usado_j1=true, lider_usado_j2=true
+            end
             DB-->>IS: ok
             IS-->>C: 201 GenericResponseDTO { PartidaDTO }
         end
@@ -505,6 +509,11 @@ sequenceDiagram
 
         alt Ambos completaron mulligan
             IS->>DB: UPDATE gw_partida (estado=EN_CURSO, rondaActual=1)
+            IS->>IS: ¿Algún jugador tiene LIDER_DRAW_EXTRA y no lo usó?
+            opt LIDER_DRAW_EXTRA activo
+                IS->>DB: UPDATE carta MAZO→MANO (roba 1 extra)
+                IS->>DB: UPDATE gw_partida SET lider_usado_jX=true
+            end
         end
         IS-->>C: 200 GenericResponseDTO { PartidaDTO }
     end
@@ -514,12 +523,18 @@ sequenceDiagram
 
 ## 14. Jugar carta
 
-**Acción:** El jugador con turno juega una carta UNIDAD de su mano en una fila del campo.
+**Acción:** El jugador con turno juega una carta de su mano al campo. Tras colocarla, se ejecuta el efecto de la habilidad.
 
 ```
 POST /ingame/v1/partidas/{id}/jugar-carta
 Authorization: Bearer <token>
-Body: { "cartaPartidaId": 101, "fila": "CUERPO_A_CUERPO" }
+Body: {
+  "cartaPartidaId": 101,
+  "fila": "CUERPO_A_CUERPO",  ← requerido para AGIL y cartas de slot lateral
+  "reviveCartaId": 55,         ← solo MEDICO
+  "reviveFila": "DISTANCIA",   ← solo si la carta a revivir es AGIL
+  "targetCartaId": 72          ← solo DECOY
+}
 ```
 
 ```mermaid
@@ -527,6 +542,7 @@ sequenceDiagram
     autonumber
     participant C as Cliente
     participant IS as ingame-service :8083
+    participant HS as HabilidadService
     participant DB as MySQL
 
     C->>IS: POST /ingame/v1/partidas/{id}/jugar-carta
@@ -541,11 +557,38 @@ sequenceDiagram
         IS-->>C: 409 You have already passed
     else OK
         IS->>DB: SELECT gw_carta_partida WHERE id=cartaPartidaId
-        alt Carta no en MANO o no UNIDAD
+        alt Carta no en MANO del jugador
+            IS-->>C: 422
+        else Tipo LIDER (no jugable)
+            IS-->>C: 422
+        else Slot lateral ocupado (para Cuerno/Mardroeme ESPECIAL)
             IS-->>C: 422
         else OK
-            IS->>IS: Determinar fila (AGIL → del request, otras → de la carta)
-            IS->>DB: UPDATE gw_carta_partida (zona=CAMPO, filaEnCampo=fila)
+            IS->>IS: Determinar fila (AGIL/slot lateral → del request, otras → del catálogo)
+            IS->>DB: UPDATE gw_carta_partida (zona=CAMPO, filaEnCampo=fila, esSlotLateral si aplica)
+
+            IS->>HS: procesarAlJugar(carta, partida, jugadorId, req)
+            alt ESPIA
+                HS->>DB: UPDATE carta.jugadorId = oponenteId
+                HS->>DB: UPDATE 2 cartas MAZO→MANO (jugador)
+            else MEDICO + reviveCartaId
+                HS->>DB: UPDATE carta cementerio (zona=CAMPO, filaEnCampo)
+            else MUSTER
+                HS->>DB: UPDATE copias en MAZO→CAMPO (misma fila)
+            else DECOY
+                HS->>DB: UPDATE targetCarta (zona=MANO, filaEnCampo=null)
+                HS->>DB: UPDATE decoy.filaEnCampo = fila del objetivo
+            else CLIMA_LIMPIO
+                HS->>DB: UPDATE cartas CLIMA (zona=CEMENTERIO) + se descarta a sí mismo
+            else SCORCH (ESPECIAL)
+                HS->>DB: Destruye unidades con max fuerza si total ≥ 10, luego se descarta
+            else SCORCH_FILA (UNIDAD)
+                HS->>DB: Destruye unidades enemigas más fuertes en su fila si total enemigo ≥ 10
+            else BERSERKER
+                HS->>HS: setTransformado(true) si hay Mardroeme en la fila
+            else MARDROEME
+                HS->>DB: UPDATE Berserkers de la fila (transformado=true)
+            end
 
             IS->>IS: Cambiar turno (si oponente pasó → mantener turno)
             IS->>IS: Auto-pass si mano vacía
@@ -606,10 +649,15 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant IS as ingame-service
+    participant HS as HabilidadService
     participant DB as MySQL
 
     IS->>DB: SELECT gw_carta_partida WHERE zona=CAMPO (ambos jugadores)
-    IS->>IS: Sumar fuerza de cartas de cada jugador
+    IS->>HS: resolverClimaActivo(campoJ1, campoJ2)
+    note over HS: Detecta cartas tipo CLIMA en campo<br/>TORMENTA_SKELLIGE → afecta DISTANCIA+ASEDIO
+    IS->>HS: calcularFuerzaTotal(campoJ1, climaActivo, liderHabJ1, liderUsadoJ1, dobleEspias)
+    note over HS: Por carta: héroe→fuerza base sin modificar<br/>clima→1 (o ceil/2 si LIDER_HALF_WEATHER)<br/>ENLACE/VINCULO×copias, MORAL+1<br/>Horn: sumaHeroes + sumaNoHeroes×2<br/>Líderes pasivos: ×2 fila correspondiente
+    IS->>HS: calcularFuerzaTotal(campoJ2, climaActivo, liderHabJ2, liderUsadoJ2, dobleEspias)
 
     alt J1 > J2
         IS->>IS: J2 pierde 1 vida
@@ -629,4 +677,174 @@ sequenceDiagram
         IS->>DB: UPDATE gw_carta_partida (MAZO→MANO, aleatorias)
         IS->>DB: UPDATE gw_partida (rondaActual++, turno=ganador de ronda)
     end
+```
+
+---
+
+## 17. Usar líder
+
+**Acción:** El jugador activa la habilidad de su líder una vez por partida. Consume el turno (pasa turno al oponente, salvo que el oponente ya haya pasado).
+
+```
+POST /ingame/v1/partidas/{id}/usar-lider
+Authorization: Bearer <token>
+Body: { "targetCartaPartidaId": 123, "descartarIds": [45, 67] }
+```
+
+Los campos del body son opcionales y dependen del líder. Ver [AbilityRules.md](AbilityRules.md#habilidades-de-líder).
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Cliente
+    participant IS as ingame-service :8083
+    participant LS as LiderService
+    participant DB as MySQL
+
+    C->>IS: POST /ingame/v1/partidas/{id}/usar-lider
+    IS->>IS: Valida JWT → extrae userId
+    IS->>DB: SELECT gw_partida
+
+    alt estado ≠ EN_CURSO o no es su turno
+        IS-->>C: 409
+    else Jugador ya pasó
+        IS-->>C: 409 You have already passed
+    else Líder ya usado
+        IS-->>C: 409 Leader ability already used
+    else Mazo sin líder
+        IS-->>C: 422 Your deck has no leader
+    else OK
+        IS->>LS: procesarLider(partida, jugadorId, req)
+        alt LIDER_CLEAR_WEATHER
+            LS->>DB: UPDATE cartas CLIMA (zona=CEMENTERIO)
+        else LIDER_PICK_FOG / PICK_RAIN / PICK_FROST
+            LS->>DB: UPDATE carta clima específica (zona=MANO)
+        else LIDER_STEAL_GRAVEYARD
+            LS->>DB: UPDATE carta oponente (jugadorId=propio, zona=MANO)
+        else LIDER_RESTORE_GRAVEYARD
+            LS->>DB: UPDATE carta propia cementerio (zona=MANO)
+        else LIDER_DISCARD_DRAW
+            LS->>DB: UPDATE 2 cartas mano (zona=CEMENTERIO)
+            LS->>DB: UPDATE 1 carta mazo aleatoria (zona=MANO)
+        else LIDER_SCORCH_CAC / SCORCH_RANGED
+            LS->>DB: Destruye unidades enemigas más fuertes en la fila si total ≥ 10
+        else LIDER_REVEAL_HAND
+            LS->>DB: UPDATE gw_partida (cartasReveladasJX = IDs de 3 cartas aleatorias del oponente)
+        else LIDER_SHUFFLE_GRAVEYARDS
+            LS->>DB: UPDATE todas las cartas cementerio (zona=MAZO, ambos jugadores)
+        else Pasivos (DOUBLE_*, HALF_WEATHER, DOUBLE_SPIES)
+            note over LS: Sin transición de carta; el efecto se aplica<br/>en calcularFuerzaTotal cuando liderUsado=true
+        end
+
+        IS->>DB: UPDATE gw_partida (lider_usado_jX=true)
+        IS->>IS: Cambiar turno al oponente (si no pasó)
+        IS-->>C: 200 GenericResponseDTO { PartidaDTO }
+    end
+```
+
+---
+
+## 18. Actualización de estadísticas al terminar partida
+
+**Contexto:** Ocurre automáticamente dentro de `jugarCarta` o `pasar` en cuanto `resolverRonda` marca `estado = TERMINADA`. La llamada es **best-effort**: si jugador-service falla, la partida ya fue persistida y solo se loguea un `WARN`.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant IS as ingame-service :8083
+    participant JC as JugadorServiceClient
+    participant JS as jugador-service :8082
+    participant DB as MySQL (gw_jugador)
+
+    note over IS: resolverRonda() → estado=TERMINADA
+    IS->>IS: partidaRepo.save(partida) — partida persistida
+    IS->>IS: notificarResultado(partida)
+
+    IS->>JC: reportMatchResult(j1Id, j2Id, ganadorId, empate)
+    JC->>JS: POST /api/v1/players/match-result<br/>Authorization: Bearer <token propagado>
+
+    JS->>DB: SELECT gw_jugador WHERE userId IN (j1Id, j2Id)
+
+    alt empate=true
+        JS->>DB: UPDATE empates+1 para J1 y J2
+    else ganadorId != null
+        JS->>DB: UPDATE victorias+1 al ganador
+        JS->>DB: UPDATE derrotas+1 al perdedor
+    end
+
+    JS-->>JC: 204 No Content
+    JC-->>IS: ok
+
+    alt jugador-service no disponible
+        JC-->>IS: excepción
+        IS->>IS: log.warn("Failed to update player stats...")
+        note over IS: La partida ya está guardada — el juego no se ve afectado
+    end
+```
+
+---
+
+## 19. Sistema de logs
+
+**Contexto:** Los cuatro servicios del flujo de partida emiten logs estructurados. El nivel `INFO` cubre todos los eventos de juego; el nivel `DEBUG` activa el desglose carta por carta del cálculo de fuerza.
+
+### Árbol de componentes con logging
+
+```mermaid
+graph TD
+    PS[PartidaService<br/>INFO: partida creada, mulligan, carta jugada<br/>INFO: pasa, resultado ronda, partida terminada<br/>WARN: fallo stats]
+    HS[HabilidadService<br/>INFO: habilidad activada, SCORCH detalle<br/>DEBUG: desglose por fila y carta]
+    LS[LiderService<br/>INFO: líder activado, efecto ejecutado]
+    SM[CartaPartidaStateMachine<br/>DEBUG: cada transición de zona]
+
+    PS -->|"procesarAlJugar()"| HS
+    PS -->|"procesarLider()"| LS
+    PS -->|"jugar/robar/descartar..."| SM
+    HS -->|"robar/descartar/revivirCarta..."| SM
+    LS -->|"tomarDelCementerio/devolverAlMazo..."| SM
+```
+
+### Flujo de logs para una jugada típica
+
+```mermaid
+sequenceDiagram
+    participant PS as PartidaService
+    participant HS as HabilidadService
+    participant SM as CartaPartidaStateMachine
+
+    note over PS: jugarCarta()
+    PS->>PS: INFO "[P-5] uuid jugó 'Guerrero' [tipo=UNIDAD, hab=ENLACE, fila=CAC]"
+    PS->>SM: jugar(carta, CAC)
+    SM->>SM: DEBUG "[carta-42] 'Guerrero': MANO → CAMPO"
+    PS->>HS: procesarAlJugar()
+    HS->>HS: INFO "[P-5] MUSTER: 2 copia(s) de 'Guerrero' pasan al campo en fila CAC"
+    SM->>SM: DEBUG "[carta-43] 'Guerrero': MAZO → CAMPO"
+    SM->>SM: DEBUG "[carta-44] 'Guerrero': MAZO → CAMPO"
+
+    note over PS: resolverRonda() (cuando ambos pasan)
+    PS->>HS: resolverClimaActivo()
+    HS->>HS: DEBUG "Clima activo en filas: [CUERPO_A_CUERPO]"
+    PS->>HS: calcularFuerzaTotal(J1)
+    HS->>HS: DEBUG "  [CAC] 3 unidad(es) | clima=true horn=false ..."
+    HS->>HS: DEBUG "    'Guerrero': 4 → 1 (clima)"
+    HS->>HS: DEBUG "    'Guerrero': 4 → 1 (clima)"
+    HS->>HS: DEBUG "    'Guerrero': 4 → 1 (clima)"
+    HS->>HS: DEBUG "  [CAC] héroes=0 no-héroes=3 factor=1 → total=3"
+    HS->>HS: DEBUG "Fuerza total: CAC=3 + DIST=0 + ASEDIO=0 = 3 [liderActivo=NINGUNA]"
+    PS->>PS: INFO "[P-5] === Ronda 1 === J1=3 pts vs J2=15 pts → J2 gana ..."
+    PS->>PS: INFO "[P-5] J1 pierde 1 vida → vidasJ1=1 vidasJ2=2"
+```
+
+### Configuración de niveles recomendada
+
+```yaml
+# Desarrollo — ver desglose completo
+logging:
+  level:
+    com.arimar.gwent.ingameservice.service: DEBUG
+
+# Producción — solo eventos de juego
+logging:
+  level:
+    com.arimar.gwent.ingameservice.service: INFO
 ```

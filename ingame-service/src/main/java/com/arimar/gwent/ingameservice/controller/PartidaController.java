@@ -73,4 +73,15 @@ public class PartidaController {
                 .status(HttpStatus.OK.value())
                 .build();
     }
+
+    @PostMapping("/{id}/usar-lider")
+    public GenericResponseDTO<PartidaDTO> usarLider(@PathVariable Long id,
+                                                      @RequestBody(required = false) UsarLiderRequest request) {
+        var actor = actorResolver.currentActor();
+        return GenericResponseDTO.<PartidaDTO>builder()
+                .serviceOrigin(serviceName)
+                .data(service.usarLider(actor.getUserId(), id, request))
+                .status(HttpStatus.OK.value())
+                .build();
+    }
 }

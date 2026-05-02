@@ -4,6 +4,7 @@ import com.arimar.gwent.common.response.GenericResponseDTO;
 import com.arimar.gwent.jugadorservice.config.security.ActorResolver;
 import com.arimar.gwent.jugadorservice.domain.player.JugadorService;
 import com.arimar.gwent.jugadorservice.dto.CreatePlayerRequest;
+import com.arimar.gwent.jugadorservice.dto.MatchResultRequest;
 import com.arimar.gwent.jugadorservice.dto.PlayerProfileDTO;
 import com.arimar.gwent.jugadorservice.dto.UpdatePlayerRequest;
 import com.arimar.gwent.security.actor.Actor;
@@ -64,5 +65,11 @@ public class JugadorController {
                 .status(HttpStatus.OK.value())
                 .data(profile)
                 .build();
+    }
+
+    @PostMapping("/players/match-result")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void reportMatchResult(@RequestBody MatchResultRequest req) {
+        jugadorService.reportMatchResult(req);
     }
 }

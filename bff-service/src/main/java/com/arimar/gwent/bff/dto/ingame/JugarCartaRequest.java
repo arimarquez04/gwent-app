@@ -1,6 +1,5 @@
-package com.arimar.gwent.ingameservice.dto;
+package com.arimar.gwent.bff.dto.ingame;
 
-import com.arimar.gwent.ingameservice.domain.enums.FilaCarta;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -10,11 +9,11 @@ public class JugarCartaRequest {
     @NotNull
     private Long cartaPartidaId;
 
-    private FilaCarta fila;
+    private String fila;
 
     // MEDICO: optional card to revive from graveyard
     private Long reviveCartaId;
-    private FilaCarta reviveFila; // only needed if the revived card has fila=AGIL
+    private String reviveFila; // only needed if the revived card has fila=AGIL
 
     // DECOY: required target card on your field to return to hand
     private Long targetCartaId;

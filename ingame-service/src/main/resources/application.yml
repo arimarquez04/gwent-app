@@ -20,6 +20,11 @@ gwent:
   security:
     jwt:
       jwks-uri: http://localhost:8085/.well-known/jwks.json
+  services:
+    jugador:
+      name: jugador-service
+      base-url: http://localhost:8082
+      match-result-url: /api/v1/players/match-result
 
 springdoc:
   packages-to-scan: com.arimar.gwent.ingameservice
@@ -38,3 +43,4 @@ management:
 logging:
   level:
     org.springframework.security: DEBUG
+    com.arimar.gwent.ingameservice.service: DEBUG

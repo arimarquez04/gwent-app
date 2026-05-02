@@ -4,8 +4,15 @@
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "baseUrl", "value": "http://localhost:8080" },
-    { "key": "token",   "value": "" }
+    { "key": "baseUrl",          "value": "http://localhost:8080" },
+    { "key": "token",            "value": "" },
+    { "key": "oponenteId",       "value": "uuid-del-oponente",     "description": "UUID del jugador oponente (extraer del JWT o perfil)" },
+    { "key": "mazoId",           "value": "1",                     "description": "ID del mazo ACTIVO propio" },
+    { "key": "mazoOponenteId",   "value": "2",                     "description": "ID del mazo ACTIVO del oponente (temporal)" },
+    { "key": "partidaId",        "value": "",                      "description": "Auto-guardado al crear partida" },
+    { "key": "cartaPartidaId",   "value": "",                      "description": "ID de una CartaPartida en tu mano (auto-guardado al ver partida)" },
+    { "key": "reviveCartaId",    "value": "",                      "description": "ID de carta en cementerio para MEDICO" },
+    { "key": "targetCartaId",    "value": "",                      "description": "ID de carta en campo para DECOY" }
   ],
   "item": [
     {
@@ -16,44 +23,18 @@
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/auth/register",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "auth", "register"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"password123\",\n  \"email\": \"test@example.com\",\n  \"gameId\": \"testgame\",\n  \"tag\": \"1234\"\n}"
-            }
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/register", "host": ["{{baseUrl}}"], "path": ["api","v1","auth","register"] },
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"password123\",\n  \"email\": \"test@example.com\",\n  \"gameId\": \"testgame\",\n  \"tag\": \"1234\"\n}" }
           }
         },
         {
           "name": "Login",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "var json = pm.response.json();",
-                  "if (json.data && json.data.accessToken) {",
-                  "  pm.collectionVariables.set('token', json.data.accessToken);",
-                  "}"
-                ]
-              }
-            }
-          ],
+          "event": [{ "listen": "test", "script": { "exec": ["var json = pm.response.json();", "if (json.data && json.data.accessToken) {", "  pm.collectionVariables.set('token', json.data.accessToken);", "}"] } }],
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "auth", "login"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"identifier\": \"testuser\",\n  \"password\": \"password123\"\n}"
-            }
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/login", "host": ["{{baseUrl}}"], "path": ["api","v1","auth","login"] },
+            "body": { "mode": "raw", "raw": "{\n  \"identifier\": \"testuser\",\n  \"password\": \"password123\"\n}" }
           }
         },
         {
@@ -61,15 +42,8 @@
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "auth", "login"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"identifier\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
-            }
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/login", "host": ["{{baseUrl}}"], "path": ["api","v1","auth","login"] },
+            "body": { "mode": "raw", "raw": "{\n  \"identifier\": \"test@example.com\",\n  \"password\": \"password123\"\n}" }
           }
         },
         {
@@ -77,15 +51,8 @@
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "auth", "login"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"identifier\": \"testgame#1234\",\n  \"password\": \"password123\"\n}"
-            }
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/login", "host": ["{{baseUrl}}"], "path": ["api","v1","auth","login"] },
+            "body": { "mode": "raw", "raw": "{\n  \"identifier\": \"testgame#1234\",\n  \"password\": \"password123\"\n}" }
           }
         },
         {
@@ -93,53 +60,17 @@
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "auth", "login"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"identifier\": \"testuser\",\n  \"password\": \"wrongpassword\"\n}"
-            }
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/login", "host": ["{{baseUrl}}"], "path": ["api","v1","auth","login"] },
+            "body": { "mode": "raw", "raw": "{\n  \"identifier\": \"testuser\",\n  \"password\": \"wrongpassword\"\n}" }
           }
         },
         {
           "name": "Cambiar contraseña",
           "request": {
             "method": "PATCH",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/auth/password",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "auth", "password"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"currentPassword\": \"password123\",\n  \"newPassword\": \"newpassword456\"\n}"
-            }
-          }
-        },
-        {
-          "name": "Cambiar contraseña (password incorrecta → 401)",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/auth/password",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "auth", "password"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"currentPassword\": \"wrong\",\n  \"newPassword\": \"newpassword456\"\n}"
-            }
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/password", "host": ["{{baseUrl}}"], "path": ["api","v1","auth","password"] },
+            "body": { "mode": "raw", "raw": "{\n  \"currentPassword\": \"password123\",\n  \"newPassword\": \"newpassword456\"\n}" }
           }
         }
       ]
@@ -152,80 +83,16 @@
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/players/me",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "players", "me"]
-            }
+            "url": { "raw": "{{baseUrl}}/api/players/me", "host": ["{{baseUrl}}"], "path": ["api","players","me"] }
           }
         },
         {
           "name": "Actualizar mi perfil (apodo)",
           "request": {
             "method": "PATCH",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/players/me",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "players", "me"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"apodo\": \"NuevoApodo\"\n}"
-            }
-          }
-        },
-        {
-          "name": "Actualizar mi perfil (avatarUrl)",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/players/me",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "players", "me"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"avatarUrl\": \"https://example.com/avatar.png\"\n}"
-            }
-          }
-        },
-        {
-          "name": "Actualizar mi perfil (ambos campos)",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/players/me",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "players", "me"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"apodo\": \"OtroApodo\",\n  \"avatarUrl\": \"https://example.com/avatar2.png\"\n}"
-            }
-          }
-        },
-        {
-          "name": "Sin token → 401",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/players/me",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "players", "me"]
-            }
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/players/me", "host": ["{{baseUrl}}"], "path": ["api","players","me"] },
+            "body": { "mode": "raw", "raw": "{\n  \"apodo\": \"NuevoApodo\"\n}" }
           }
         }
       ]
@@ -238,526 +105,87 @@
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards"]
-            }
+            "url": { "raw": "{{baseUrl}}/api/v1/cards", "host": ["{{baseUrl}}"], "path": ["api","v1","cards"] }
           }
         },
         {
-          "name": "Sin token → 401",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "2. Cartas — por facción",
-      "item": [
-        {
-          "name": "REINO_DEL_NORTE",
+          "name": "Solo líderes",
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards?faccion=REINO_DEL_NORTE",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards"],
-              "query": [{ "key": "faccion", "value": "REINO_DEL_NORTE" }]
-            }
+            "url": { "raw": "{{baseUrl}}/api/v1/cards?tipo=LIDER", "host": ["{{baseUrl}}"], "path": ["api","v1","cards"], "query": [{ "key": "tipo", "value": "LIDER" }] }
           }
         },
         {
-          "name": "NILFGAARD",
+          "name": "Líderes por facción (REINO_DEL_NORTE)",
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards?faccion=NILFGAARD",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards"],
-              "query": [{ "key": "faccion", "value": "NILFGAARD" }]
-            }
+            "url": { "raw": "{{baseUrl}}/api/v1/cards?tipo=LIDER&faccion=REINO_DEL_NORTE", "host": ["{{baseUrl}}"], "path": ["api","v1","cards"], "query": [{ "key": "tipo", "value": "LIDER" }, { "key": "faccion", "value": "REINO_DEL_NORTE" }] }
           }
         },
         {
-          "name": "MONSTRUOS",
+          "name": "Cartas CLIMA",
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards?faccion=MONSTRUOS",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards"],
-              "query": [{ "key": "faccion", "value": "MONSTRUOS" }]
-            }
+            "url": { "raw": "{{baseUrl}}/api/v1/cards?tipo=CLIMA", "host": ["{{baseUrl}}"], "path": ["api","v1","cards"], "query": [{ "key": "tipo", "value": "CLIMA" }] }
           }
         },
         {
-          "name": "SCOIA_TAEL",
+          "name": "Cartas ESPECIAL",
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards?faccion=SCOIA_TAEL",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards"],
-              "query": [{ "key": "faccion", "value": "SCOIA_TAEL" }]
-            }
+            "url": { "raw": "{{baseUrl}}/api/v1/cards?tipo=ESPECIAL", "host": ["{{baseUrl}}"], "path": ["api","v1","cards"], "query": [{ "key": "tipo", "value": "ESPECIAL" }] }
           }
         },
         {
-          "name": "SKELLIGE",
+          "name": "Cartas con BERSERKER",
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards?faccion=SKELLIGE",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards"],
-              "query": [{ "key": "faccion", "value": "SKELLIGE" }]
-            }
+            "url": { "raw": "{{baseUrl}}/api/v1/cards?habilidad=BERSERKER", "host": ["{{baseUrl}}"], "path": ["api","v1","cards"], "query": [{ "key": "habilidad", "value": "BERSERKER" }] }
           }
         },
         {
-          "name": "NEUTRAL",
+          "name": "Cartas con SCORCH",
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards?faccion=NEUTRAL",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards"],
-              "query": [{ "key": "faccion", "value": "NEUTRAL" }]
-            }
+            "url": { "raw": "{{baseUrl}}/api/v1/cards?habilidad=SCORCH", "host": ["{{baseUrl}}"], "path": ["api","v1","cards"], "query": [{ "key": "habilidad", "value": "SCORCH" }] }
           }
         },
         {
-          "name": "Facción inválida → 400",
+          "name": "Obtener carta por ID",
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards?faccion=INVALIDA",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards"],
-              "query": [{ "key": "faccion", "value": "INVALIDA" }]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "2. Cartas — por fila",
-      "item": [
-        {
-          "name": "CUERPO_A_CUERPO",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards?fila=CUERPO_A_CUERPO",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards"],
-              "query": [{ "key": "fila", "value": "CUERPO_A_CUERPO" }]
-            }
+            "url": { "raw": "{{baseUrl}}/api/v1/cards/1", "host": ["{{baseUrl}}"], "path": ["api","v1","cards","1"] }
           }
         },
         {
-          "name": "DISTANCIA",
+          "name": "Cartas por fila (CUERPO_A_CUERPO)",
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards?fila=DISTANCIA",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards"],
-              "query": [{ "key": "fila", "value": "DISTANCIA" }]
-            }
+            "url": { "raw": "{{baseUrl}}/api/v1/cards?fila=CUERPO_A_CUERPO", "host": ["{{baseUrl}}"], "path": ["api","v1","cards"], "query": [{ "key": "fila", "value": "CUERPO_A_CUERPO" }] }
           }
         },
         {
-          "name": "ASEDIO",
+          "name": "Solo héroes (?esHeroe=true)",
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards?fila=ASEDIO",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards"],
-              "query": [{ "key": "fila", "value": "ASEDIO" }]
-            }
+            "url": { "raw": "{{baseUrl}}/api/v1/cards?esHeroe=true", "host": ["{{baseUrl}}"], "path": ["api","v1","cards"], "query": [{ "key": "esHeroe", "value": "true" }] }
           }
         },
         {
-          "name": "AGIL",
+          "name": "Solo cartas CLIMA + ESPECIAL (?esEspecial=true)",
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards?fila=AGIL",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards"],
-              "query": [{ "key": "fila", "value": "AGIL" }]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "2. Cartas — por tipo",
-      "item": [
-        {
-          "name": "UNIDAD",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards?tipo=UNIDAD",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards"],
-              "query": [{ "key": "tipo", "value": "UNIDAD" }]
-            }
-          }
-        },
-        {
-          "name": "CLIMA",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards?tipo=CLIMA",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards"],
-              "query": [{ "key": "tipo", "value": "CLIMA" }]
-            }
-          }
-        },
-        {
-          "name": "ESPECIAL",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards?tipo=ESPECIAL",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards"],
-              "query": [{ "key": "tipo", "value": "ESPECIAL" }]
-            }
-          }
-        },
-        {
-          "name": "esEspecial=true (CLIMA + ESPECIAL)",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards?esEspecial=true",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards"],
-              "query": [{ "key": "esEspecial", "value": "true" }]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "2. Cartas — por héroe y habilidad",
-      "item": [
-        {
-          "name": "Solo héroes",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards?esHeroe=true",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards"],
-              "query": [{ "key": "esHeroe", "value": "true" }]
-            }
-          }
-        },
-        {
-          "name": "No héroes",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards?esHeroe=false",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards"],
-              "query": [{ "key": "esHeroe", "value": "false" }]
-            }
-          }
-        },
-        {
-          "name": "Habilidad MEDICO",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards?habilidad=MEDICO",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards"],
-              "query": [{ "key": "habilidad", "value": "MEDICO" }]
-            }
-          }
-        },
-        {
-          "name": "Habilidad ESPIA",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards?habilidad=ESPIA",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards"],
-              "query": [{ "key": "habilidad", "value": "ESPIA" }]
-            }
-          }
-        },
-        {
-          "name": "Habilidad ENLACE_APRETADO",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards?habilidad=ENLACE_APRETADO",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards"],
-              "query": [{ "key": "habilidad", "value": "ENLACE_APRETADO" }]
-            }
-          }
-        },
-        {
-          "name": "Habilidad MUSTER",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards?habilidad=MUSTER",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards"],
-              "query": [{ "key": "habilidad", "value": "MUSTER" }]
-            }
-          }
-        },
-        {
-          "name": "Habilidad DECOY",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards?habilidad=DECOY",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards"],
-              "query": [{ "key": "habilidad", "value": "DECOY" }]
-            }
-          }
-        },
-        {
-          "name": "Habilidad REFUERZO_MORAL",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards?habilidad=REFUERZO_MORAL",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards"],
-              "query": [{ "key": "habilidad", "value": "REFUERZO_MORAL" }]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "2. Cartas — filtros combinados",
-      "item": [
-        {
-          "name": "RDN + CaC",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards?faccion=REINO_DEL_NORTE&fila=CUERPO_A_CUERPO",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards"],
-              "query": [
-                { "key": "faccion", "value": "REINO_DEL_NORTE" },
-                { "key": "fila",    "value": "CUERPO_A_CUERPO" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "NILFGAARD + no héroes",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards?faccion=NILFGAARD&esHeroe=false",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards"],
-              "query": [
-                { "key": "faccion",  "value": "NILFGAARD" },
-                { "key": "esHeroe", "value": "false" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "NEUTRAL + esEspecial",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards?faccion=NEUTRAL&esEspecial=true",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards"],
-              "query": [
-                { "key": "faccion",    "value": "NEUTRAL" },
-                { "key": "esEspecial", "value": "true" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Héroes de cualquier facción",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards?esHeroe=true",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards"],
-              "query": [{ "key": "esHeroe", "value": "true" }]
-            }
-          }
-        },
-        {
-          "name": "Médicos no-héroes",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards?habilidad=MEDICO&esHeroe=false",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards"],
-              "query": [
-                { "key": "habilidad", "value": "MEDICO" },
-                { "key": "esHeroe",   "value": "false" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "MONSTRUOS + CUERPO_A_CUERPO",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards?faccion=MONSTRUOS&fila=CUERPO_A_CUERPO",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards"],
-              "query": [
-                { "key": "faccion", "value": "MONSTRUOS" },
-                { "key": "fila",    "value": "CUERPO_A_CUERPO" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "ENLACE_APRETADO DISTANCIA",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards?habilidad=ENLACE_APRETADO&fila=DISTANCIA",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards"],
-              "query": [
-                { "key": "habilidad", "value": "ENLACE_APRETADO" },
-                { "key": "fila",      "value": "DISTANCIA" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "SKELLIGE + CaC + no héroe",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards?faccion=SKELLIGE&fila=CUERPO_A_CUERPO&esHeroe=false",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards"],
-              "query": [
-                { "key": "faccion",  "value": "SKELLIGE" },
-                { "key": "fila",     "value": "CUERPO_A_CUERPO" },
-                { "key": "esHeroe", "value": "false" }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "2. Cartas — por ID",
-      "item": [
-        {
-          "name": "Carta ID 1",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards/1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards", "1"]
-            }
-          }
-        },
-        {
-          "name": "Carta ID 5",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards/5",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards", "5"]
-            }
-          }
-        },
-        {
-          "name": "Carta ID 10",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards/10",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards", "10"]
-            }
-          }
-        },
-        {
-          "name": "Carta inexistente → 404",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cards/9999",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cards", "9999"]
-            }
+            "url": { "raw": "{{baseUrl}}/api/v1/cards?esEspecial=true", "host": ["{{baseUrl}}"], "path": ["api","v1","cards"], "query": [{ "key": "esEspecial", "value": "true" }] }
           }
         }
       ]
@@ -766,79 +194,12 @@
       "name": "3. Mis cartas (desbloqueo)",
       "item": [
         {
-          "name": "Desbloquear cartas (nuevas)",
+          "name": "Desbloquear cartas",
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/players/me/cards",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "players", "me", "cards"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"cardIds\": [1, 2, 3]\n}"
-            }
-          }
-        },
-        {
-          "name": "Desbloquear cartas (segunda copia — unidades normales)",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/players/me/cards",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "players", "me", "cards"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"cardIds\": [3]\n}"
-            }
-          }
-        },
-        {
-          "name": "Desbloquear carta ya al máximo (héroe → skip silencioso)",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/players/me/cards",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "players", "me", "cards"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"cardIds\": [1]\n}"
-            }
-          }
-        },
-        {
-          "name": "Desbloquear carta inexistente → 404",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/players/me/cards",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "players", "me", "cards"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"cardIds\": [9999]\n}"
-            }
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/players/me/cards", "host": ["{{baseUrl}}"], "path": ["api","v1","players","me","cards"] },
+            "body": { "mode": "raw", "raw": "{\n  \"cardIds\": [1, 2, 3]\n}" }
           }
         },
         {
@@ -846,23 +207,7 @@
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/players/me/cards",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "players", "me", "cards"]
-            }
-          }
-        },
-        {
-          "name": "Sin token → 401",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/players/me/cards",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "players", "me", "cards"]
-            }
+            "url": { "raw": "{{baseUrl}}/api/v1/players/me/cards", "host": ["{{baseUrl}}"], "path": ["api","v1","players","me","cards"] }
           }
         }
       ]
@@ -874,114 +219,18 @@
           "name": "Crear mazo (sin lider ni cartas)",
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/players/me/mazos",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "players", "me", "mazos"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Mi primer mazo RDN\",\n  \"faccion\": \"REINO_DEL_NORTE\"\n}"
-            }
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/players/me/mazos", "host": ["{{baseUrl}}"], "path": ["api","v1","players","me","mazos"] },
+            "body": { "mode": "raw", "raw": "{\n  \"nombre\": \"Mi mazo RDN\",\n  \"faccion\": \"REINO_DEL_NORTE\"\n}" }
           }
         },
         {
           "name": "Crear mazo (con lider y cartas)",
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/players/me/mazos",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "players", "me", "mazos"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Mazo RDN con lider\",\n  \"faccion\": \"REINO_DEL_NORTE\",\n  \"liderId\": 32,\n  \"cardEntries\": [\n    { \"cartaCatalogoId\": 5, \"cantidad\": 1 },\n    { \"cartaCatalogoId\": 6, \"cantidad\": 3 },\n    { \"cartaCatalogoId\": 7, \"cantidad\": 3 },\n    { \"cartaCatalogoId\": 8, \"cantidad\": 3 }\n  ]\n}"
-            }
-          }
-        },
-        {
-          "name": "Crear mazo (limite 3 por faccion → 409)",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/players/me/mazos",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "players", "me", "mazos"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Cuarto mazo RDN — deberia fallar\",\n  \"faccion\": \"REINO_DEL_NORTE\"\n}"
-            }
-          }
-        },
-        {
-          "name": "Crear mazo (carta de otra faccion → 422)",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/players/me/mazos",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "players", "me", "mazos"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Mazo con carta invalida\",\n  \"faccion\": \"REINO_DEL_NORTE\",\n  \"cardEntries\": [\n    { \"cartaCatalogoId\": 10, \"cantidad\": 1 }\n  ]\n}"
-            }
-          }
-        },
-        {
-          "name": "Crear mazo (lider de faccion incorrecta → 422)",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/players/me/mazos",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "players", "me", "mazos"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Mazo con lider incorrecto\",\n  \"faccion\": \"REINO_DEL_NORTE\",\n  \"liderId\": 34\n}"
-            }
-          }
-        },
-        {
-          "name": "Crear mazo (lider como carta → 422)",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/players/me/mazos",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "players", "me", "mazos"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Mazo con lider en cartas\",\n  \"faccion\": \"REINO_DEL_NORTE\",\n  \"cardEntries\": [\n    { \"cartaCatalogoId\": 32, \"cantidad\": 1 }\n  ]\n}"
-            }
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/players/me/mazos", "host": ["{{baseUrl}}"], "path": ["api","v1","players","me","mazos"] },
+            "body": { "mode": "raw", "raw": "{\n  \"nombre\": \"Mazo RDN con lider\",\n  \"faccion\": \"REINO_DEL_NORTE\",\n  \"liderId\": 1,\n  \"cardEntries\": [\n    { \"cartaCatalogoId\": 5, \"cantidad\": 1 },\n    { \"cartaCatalogoId\": 6, \"cantidad\": 3 },\n    { \"cartaCatalogoId\": 7, \"cantidad\": 3 },\n    { \"cartaCatalogoId\": 8, \"cantidad\": 3 }\n  ]\n}" }
           }
         },
         {
@@ -989,11 +238,7 @@
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/players/me/mazos",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "players", "me", "mazos"]
-            }
+            "url": { "raw": "{{baseUrl}}/api/v1/players/me/mazos", "host": ["{{baseUrl}}"], "path": ["api","v1","players","me","mazos"] }
           }
         },
         {
@@ -1001,123 +246,50 @@
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/players/me/mazos/1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "players", "me", "mazos", "1"]
-            }
-          }
-        },
-        {
-          "name": "Obtener mazo inexistente → 404",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/players/me/mazos/9999",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "players", "me", "mazos", "9999"]
-            }
-          }
-        },
-        {
-          "name": "Editar mazo (cambiar nombre)",
-          "request": {
-            "method": "PUT",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/players/me/mazos/1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "players", "me", "mazos", "1"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Mazo RDN v2\"\n}"
-            }
+            "url": { "raw": "{{baseUrl}}/api/v1/players/me/mazos/{{mazoId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","players","me","mazos","{{mazoId}}"] }
           }
         },
         {
           "name": "Editar mazo (cambiar lider)",
           "request": {
             "method": "PUT",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/players/me/mazos/1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "players", "me", "mazos", "1"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"liderId\": 33\n}"
-            }
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/players/me/mazos/{{mazoId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","players","me","mazos","{{mazoId}}"] },
+            "body": { "mode": "raw", "raw": "{\n  \"liderId\": 2\n}" }
           }
         },
         {
-          "name": "Editar mazo (quitar lider)",
+          "name": "Editar mazo: quitar líder (liderId: -1)",
           "request": {
             "method": "PUT",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/players/me/mazos/1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "players", "me", "mazos", "1"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"liderId\": -1\n}"
-            }
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/players/me/mazos/{{mazoId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","players","me","mazos","{{mazoId}}"] },
+            "body": { "mode": "raw", "raw": "{\n  \"liderId\": -1\n}" }
           }
         },
         {
-          "name": "Editar mazo (reemplazar cartas)",
-          "request": {
-            "method": "PUT",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/players/me/mazos/1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "players", "me", "mazos", "1"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"cardEntries\": [\n    { \"cartaCatalogoId\": 5, \"cantidad\": 1 },\n    { \"cartaCatalogoId\": 6, \"cantidad\": 3 },\n    { \"cartaCatalogoId\": 7, \"cantidad\": 3 },\n    { \"cartaCatalogoId\": 8, \"cantidad\": 3 },\n    { \"cartaCatalogoId\": 9, \"cantidad\": 3 },\n    { \"cartaCatalogoId\": 25, \"cantidad\": 1 },\n    { \"cartaCatalogoId\": 26, \"cantidad\": 1 }\n  ]\n}"
-            }
-          }
-        },
-        {
-          "name": "Activar mazo (menos de 22 unidades → 422)",
+          "name": "Activar mazo con < 22 unidades → 422",
           "request": {
             "method": "PATCH",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/players/me/mazos/1/activate",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "players", "me", "mazos", "1", "activate"]
-            }
+            "url": { "raw": "{{baseUrl}}/api/v1/players/me/mazos/{{mazoId}}/activate", "host": ["{{baseUrl}}"], "path": ["api","v1","players","me","mazos","{{mazoId}}","activate"] }
           }
         },
         {
-          "name": "Activar mazo (con 22+ unidades → 200, estado ACTIVO)",
+          "name": "Crear 4° mazo de la misma facción → 409",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/players/me/mazos", "host": ["{{baseUrl}}"], "path": ["api","v1","players","me","mazos"] },
+            "body": { "mode": "raw", "raw": "{\n  \"nombre\": \"Mazo extra RDN\",\n  \"faccion\": \"REINO_DEL_NORTE\"\n}" }
+          }
+        },
+        {
+          "name": "Activar mazo",
           "request": {
             "method": "PATCH",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/players/me/mazos/2/activate",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "players", "me", "mazos", "2", "activate"]
-            }
+            "url": { "raw": "{{baseUrl}}/api/v1/players/me/mazos/{{mazoId}}/activate", "host": ["{{baseUrl}}"], "path": ["api","v1","players","me","mazos","{{mazoId}}","activate"] }
           }
         },
         {
@@ -1125,23 +297,591 @@
           "request": {
             "method": "DELETE",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/players/me/mazos/1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "players", "me", "mazos", "1"]
+            "url": { "raw": "{{baseUrl}}/api/v1/players/me/mazos/{{mazoId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","players","me","mazos","{{mazoId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Partidas — Paso a paso",
+      "description": "Flujo completo de una partida. Variables necesarias antes de empezar:\n- {{token}}: JWT del jugador activo (ejecutar Login)\n- {{oponenteId}}: UUID del oponente\n- {{mazoId}}: ID del mazo ACTIVO propio\n- {{mazoOponenteId}}: ID del mazo ACTIVO del oponente\n\nEl resto de variables (partidaId, cartaPartidaId, etc.) se autocompletan con los scripts de test.",
+      "item": [
+        {
+          "name": "PASO 1 — Crear partida",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.id) {",
+                  "  pm.collectionVariables.set('partidaId', json.data.id.toString());",
+                  "  console.log('partidaId guardado:', json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oponenteId\": \"{{oponenteId}}\",\n  \"mazoId\": {{mazoId}},\n  \"mazoOponenteId\": {{mazoOponenteId}}\n}"
             }
           }
         },
         {
-          "name": "Sin token → 401",
+          "name": "PASO 2 — Ver estado (MULLIGAN)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.yo && json.data.yo.mano && json.data.yo.mano.length > 0) {",
+                  "  pm.collectionVariables.set('cartaPartidaId', json.data.yo.mano[0].id.toString());",
+                  "  console.log('cartaPartidaId (primera carta en mano):', json.data.yo.mano[0].id);",
+                  "  console.log('Lider:', JSON.stringify(json.data.yo.lider));",
+                  "  console.log('Estado:', json.data.estado);",
+                  "}",
+                  "if (json.data && json.data.yo && json.data.yo.cementerio && json.data.yo.cementerio.length > 0) {",
+                  "  pm.collectionVariables.set('reviveCartaId', json.data.yo.cementerio[0].id.toString());",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/players/me/mazos",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "players", "me", "mazos"]
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}"] }
+          }
+        },
+        {
+          "name": "PASO 3a — Mulligan: jugador activo (skip, 0 cambios)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/mulligan", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","mulligan"] },
+            "body": { "mode": "raw", "raw": "{\n  \"cartaPartidaIds\": []\n}" }
+          }
+        },
+        {
+          "name": "PASO 3b — Mulligan: jugador activo (intercambiar 1 carta)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/mulligan", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","mulligan"] },
+            "body": { "mode": "raw", "raw": "{\n  \"cartaPartidaIds\": [{{cartaPartidaId}}]\n}" }
+          }
+        },
+        {
+          "name": "PASO 3c — Mulligan: intercambiar 2 cartas (reemplazar IDs manualmente)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/mulligan", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","mulligan"] },
+            "body": { "mode": "raw", "raw": "{\n  \"cartaPartidaIds\": [{{cartaPartidaId}}, 0]\n}" }
+          }
+        },
+        {
+          "name": "PASO 4 — Ver estado (EN_CURSO) — actualiza {{cartaPartidaId}}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data) {",
+                  "  console.log('Estado:', json.data.estado);",
+                  "  console.log('EsMiTurno:', json.data.esMiTurno);",
+                  "  console.log('Lider:', JSON.stringify(json.data.yo.lider));",
+                  "  console.log('LiderUsado:', json.data.yo.liderUsado);",
+                  "  console.log('Clima en campo:', JSON.stringify(json.data.climaEnCampo));",
+                  "  if (json.data.yo.mano && json.data.yo.mano.length > 0) {",
+                  "    pm.collectionVariables.set('cartaPartidaId', json.data.yo.mano[0].id.toString());",
+                  "    console.log('cartaPartidaId actualizado:', json.data.yo.mano[0].id, '| tipo:', json.data.yo.mano[0].tipo, '| habilidad:', json.data.yo.mano[0].habilidad);",
+                  "  }",
+                  "  if (json.data.yo.cementerio && json.data.yo.cementerio.length > 0) {",
+                  "    pm.collectionVariables.set('reviveCartaId', json.data.yo.cementerio[0].id.toString());",
+                  "    console.log('reviveCartaId actualizado:', json.data.yo.cementerio[0].id);",
+                  "  }",
+                  "  if (json.data.yo.tablero) {",
+                  "    var t = json.data.yo.tablero;",
+                  "    if (t.cuerpoACuerpo && t.cuerpoACuerpo.length > 0) {",
+                  "      pm.collectionVariables.set('targetCartaId', t.cuerpoACuerpo[0].id.toString());",
+                  "      console.log('targetCartaId (primera carta en CAC):', t.cuerpoACuerpo[0].id);",
+                  "    }",
+                  "  }",
+                  "}"
+                ]
+              }
             }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}"] }
+          }
+        },
+        {
+          "name": "PASO 5a — Jugar carta UNIDAD (fila del catálogo)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/jugar-carta", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","jugar-carta"] },
+            "body": { "mode": "raw", "raw": "{\n  \"cartaPartidaId\": {{cartaPartidaId}}\n}" }
+          }
+        },
+        {
+          "name": "PASO 5b — Jugar carta AGIL (requiere fila manual)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/jugar-carta", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","jugar-carta"] },
+            "body": { "mode": "raw", "raw": "{\n  \"cartaPartidaId\": {{cartaPartidaId}},\n  \"fila\": \"CUERPO_A_CUERPO\"\n}" }
+          }
+        },
+        {
+          "name": "PASO 5c — Jugar carta ESPIA",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/jugar-carta", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","jugar-carta"] },
+            "body": { "mode": "raw", "raw": "{\n  \"cartaPartidaId\": {{cartaPartidaId}}\n}" }
+          }
+        },
+        {
+          "name": "PASO 5d — Jugar carta MEDICO (con revive)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/jugar-carta", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","jugar-carta"] },
+            "body": { "mode": "raw", "raw": "{\n  \"cartaPartidaId\": {{cartaPartidaId}},\n  \"reviveCartaId\": {{reviveCartaId}}\n}" }
+          }
+        },
+        {
+          "name": "PASO 5e — Jugar carta MEDICO (sin revive, solo se juega)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/jugar-carta", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","jugar-carta"] },
+            "body": { "mode": "raw", "raw": "{\n  \"cartaPartidaId\": {{cartaPartidaId}}\n}" }
+          }
+        },
+        {
+          "name": "PASO 5e-bis — Jugar MEDICO reviviendo carta AGIL (requiere reviveFila)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/jugar-carta", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","jugar-carta"] },
+            "body": { "mode": "raw", "raw": "{\n  \"cartaPartidaId\": {{cartaPartidaId}},\n  \"reviveCartaId\": {{reviveCartaId}},\n  \"reviveFila\": \"CUERPO_A_CUERPO\"\n}" }
+          }
+        },
+        {
+          "name": "PASO 5f — Jugar carta MUSTER",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/jugar-carta", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","jugar-carta"] },
+            "body": { "mode": "raw", "raw": "{\n  \"cartaPartidaId\": {{cartaPartidaId}}\n}" }
+          }
+        },
+        {
+          "name": "PASO 5g — Jugar carta DECOY (requiere targetCartaId en campo)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/jugar-carta", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","jugar-carta"] },
+            "body": { "mode": "raw", "raw": "{\n  \"cartaPartidaId\": {{cartaPartidaId}},\n  \"targetCartaId\": {{targetCartaId}}\n}" }
+          }
+        },
+        {
+          "name": "PASO 5h — Jugar carta BERSERKER",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/jugar-carta", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","jugar-carta"] },
+            "body": { "mode": "raw", "raw": "{\n  \"cartaPartidaId\": {{cartaPartidaId}}\n}" }
+          }
+        },
+        {
+          "name": "PASO 5i — Jugar carta MARDROEME (slot lateral de una fila)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/jugar-carta", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","jugar-carta"] },
+            "body": { "mode": "raw", "raw": "{\n  \"cartaPartidaId\": {{cartaPartidaId}},\n  \"fila\": \"CUERPO_A_CUERPO\"\n}" }
+          }
+        },
+        {
+          "name": "PASO 5j — Jugar Cuerno del Comandante (slot lateral DISTANCIA)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/jugar-carta", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","jugar-carta"] },
+            "body": { "mode": "raw", "raw": "{\n  \"cartaPartidaId\": {{cartaPartidaId}},\n  \"fila\": \"DISTANCIA\"\n}" }
+          }
+        },
+        {
+          "name": "PASO 5k — Jugar carta CLIMA (Tormenta de escarcha / Lluvia acida / Niebla espesa)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/jugar-carta", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","jugar-carta"] },
+            "body": { "mode": "raw", "raw": "{\n  \"cartaPartidaId\": {{cartaPartidaId}}\n}" }
+          }
+        },
+        {
+          "name": "PASO 5l — Jugar Tormenta de Skellige (CLIMA doble fila)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/jugar-carta", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","jugar-carta"] },
+            "body": { "mode": "raw", "raw": "{\n  \"cartaPartidaId\": {{cartaPartidaId}}\n}" }
+          }
+        },
+        {
+          "name": "PASO 5m — Jugar Buen clima (CLIMA_LIMPIO, instantáneo)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/jugar-carta", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","jugar-carta"] },
+            "body": { "mode": "raw", "raw": "{\n  \"cartaPartidaId\": {{cartaPartidaId}}\n}" }
+          }
+        },
+        {
+          "name": "PASO 5n — Jugar Scorch (ESPECIAL instantáneo, ambos campos)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/jugar-carta", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","jugar-carta"] },
+            "body": { "mode": "raw", "raw": "{\n  \"cartaPartidaId\": {{cartaPartidaId}}\n}" }
+          }
+        },
+        {
+          "name": "PASO 5o — Jugar Clan Dimun Pirate (SCORCH_GLOBAL como unidad ASEDIO)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/jugar-carta", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","jugar-carta"] },
+            "body": { "mode": "raw", "raw": "{\n  \"cartaPartidaId\": {{cartaPartidaId}}\n}" }
+          }
+        },
+        {
+          "name": "PASO 6 — Pasar turno",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/pasar", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","pasar"] }
+          }
+        },
+        {
+          "name": "PASO 7a — Usar líder: efecto pasivo (DOUBLE_RANGED, DOUBLE_SIEGE, DOUBLE_CAC, HALF_WEATHER)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/usar-lider", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","usar-lider"] },
+            "body": { "mode": "raw", "raw": "{}" }
+          }
+        },
+        {
+          "name": "PASO 7b — Usar líder: limpiar clima (CLEAR_WEATHER / PICK_FOG / PICK_RAIN / PICK_FROST)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/usar-lider", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","usar-lider"] },
+            "body": { "mode": "raw", "raw": "{}" }
+          }
+        },
+        {
+          "name": "PASO 7c — Usar líder: robar del cementerio del oponente (STEAL_GRAVEYARD)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/usar-lider", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","usar-lider"] },
+            "body": { "mode": "raw", "raw": "{\n  \"targetCartaPartidaId\": {{reviveCartaId}}\n}" }
+          }
+        },
+        {
+          "name": "PASO 7d — Usar líder: restaurar del propio cementerio (RESTORE_GRAVEYARD)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/usar-lider", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","usar-lider"] },
+            "body": { "mode": "raw", "raw": "{\n  \"targetCartaPartidaId\": {{reviveCartaId}}\n}" }
+          }
+        },
+        {
+          "name": "PASO 7e — Usar líder: descartar 2 cartas y robar 1 (DISCARD_DRAW)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/usar-lider", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","usar-lider"] },
+            "body": { "mode": "raw", "raw": "{\n  \"descartarIds\": [0, 0]\n}" }
+          }
+        },
+        {
+          "name": "PASO 7f — Usar líder: revelar 3 cartas del oponente (REVEAL_HAND)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.oponente && json.data.oponente.cartasReveladas) {",
+                  "  console.log('Cartas reveladas del oponente:', JSON.stringify(json.data.oponente.cartasReveladas));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/usar-lider", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","usar-lider"] },
+            "body": { "mode": "raw", "raw": "{}" }
+          }
+        },
+        {
+          "name": "PASO 7g — Usar líder: mezclar cementerios en mazos (SHUFFLE_GRAVEYARDS)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/usar-lider", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","usar-lider"] },
+            "body": { "mode": "raw", "raw": "{}" }
+          }
+        },
+        {
+          "name": "PASO 7h — Usar líder: Scorch en CAC o DISTANCIA (SCORCH_CAC / SCORCH_RANGED)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/usar-lider", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","usar-lider"] },
+            "body": { "mode": "raw", "raw": "{}" }
+          }
+        },
+        {
+          "name": "PASO 7i — Usar líder ya usado → 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/usar-lider", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","usar-lider"] },
+            "body": { "mode": "raw", "raw": "{}" }
+          }
+        },
+        {
+          "name": "PASO 8 — Ver estado final (TERMINADA)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Partidas — Casos de error",
+      "item": [
+        {
+          "name": "Crear partida contra sí mismo → 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas"] },
+            "body": { "mode": "raw", "raw": "{\n  \"oponenteId\": \"REEMPLAZAR-CON-TU-PROPIO-UUID\",\n  \"mazoId\": {{mazoId}},\n  \"mazoOponenteId\": {{mazoOponenteId}}\n}" }
+          }
+        },
+        {
+          "name": "Jugar carta en turno ajeno → 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/jugar-carta", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","jugar-carta"] },
+            "body": { "mode": "raw", "raw": "{\n  \"cartaPartidaId\": {{cartaPartidaId}}\n}" }
+          }
+        },
+        {
+          "name": "Jugar carta tipo LIDER → 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/jugar-carta", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","jugar-carta"] },
+            "body": { "mode": "raw", "raw": "{\n  \"cartaPartidaId\": 9999\n}" }
+          }
+        },
+        {
+          "name": "DECOY sin targetCartaId → 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/jugar-carta", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","jugar-carta"] },
+            "body": { "mode": "raw", "raw": "{\n  \"cartaPartidaId\": {{cartaPartidaId}}\n}" }
+          }
+        },
+        {
+          "name": "Slot lateral ya ocupado → 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/jugar-carta", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","jugar-carta"] },
+            "body": { "mode": "raw", "raw": "{\n  \"cartaPartidaId\": {{cartaPartidaId}},\n  \"fila\": \"DISTANCIA\"\n}" }
+          }
+        },
+        {
+          "name": "Pasar turno dos veces → 409",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/pasar", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","pasar"] }
+          }
+        },
+        {
+          "name": "Usar líder en partida en MULLIGAN → 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/usar-lider", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","usar-lider"] },
+            "body": { "mode": "raw", "raw": "{}" }
+          }
+        },
+        {
+          "name": "Usar líder DISCARD_DRAW con 1 sola carta → 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/usar-lider", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","usar-lider"] },
+            "body": { "mode": "raw", "raw": "{\n  \"descartarIds\": [{{cartaPartidaId}}]\n}" }
+          }
+        },
+        {
+          "name": "Mulligan con más de 2 cartas → 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/{{partidaId}}/mulligan", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","{{partidaId}}","mulligan"] },
+            "body": { "mode": "raw", "raw": "{\n  \"cartaPartidaIds\": [1, 2, 3]\n}" }
+          }
+        },
+        {
+          "name": "Partida no encontrada → 404",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/partidas/99999", "host": ["{{baseUrl}}"], "path": ["api","v1","partidas","99999"] }
           }
         }
       ]
